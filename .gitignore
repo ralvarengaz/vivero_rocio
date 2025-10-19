@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+
+# Entornos
+.venv/
+venv/
+env/
+
+# Archivos locales
+*.db
+data/*.db
+*.sqlite
+*.sqlite3
+*.zip
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Credenciales opcionales
+.env

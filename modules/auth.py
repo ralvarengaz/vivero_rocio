@@ -3,7 +3,7 @@ import flet as ft
 import hashlib
 
 def login_view(container, page: ft.Page):
-    """Renderiza la vista de login y maneja autenticación"""
+    """Renderiza la vista de login y maneja autenticación con PostgreSQL"""
     
     print("🎨 Iniciando login view innovador...")
 
@@ -11,155 +11,182 @@ def login_view(container, page: ft.Page):
         label="Usuario", 
         width=300, 
         autofocus=True,
-        border_color="#2E7D32",
-        focused_border_color="#66BB6A"
+        hint_text="Ingresa tu usuario",
+        prefix_icon=ft.Icons.PERSON,
+        border_color="#2E7D32"
     )
+    
     password = ft.TextField(
         label="Contraseña", 
         width=300, 
         password=True, 
         can_reveal_password=True,
-        border_color="#2E7D32",
-        focused_border_color="#66BB6A"
+        hint_text="Ingresa tu contraseña",
+        prefix_icon=ft.Icons.LOCK,
+        border_color="#2E7D32"
     )
-    mensaje = ft.Text(color="red", size=14)
     
-    contador_intentos = {"valor": 0}
+    mensaje = ft.Text("", color="red", size=14, weight="bold")
+    
+    contador_intentos = {"count": 0}
 
     def autenticar(e):
-        """Autentica usuario contra PostgreSQL"""
-        contador_intentos["valor"] += 1
-        print(f"🔐 Intento de login #{contador_intentos['valor']}: {usuario.value}")
+        contador_intentos["count"] += 1
+        print(f"🔐 Intento de login #{contador_intentos['count']}: {usuario.value}")
         
         if not usuario.value or not password.value:
-            mensaje.value = "❌ Por favor complete todos los campos"
+            mensaje.value = "❌ Por favor completa todos los campos"
             page.update()
             return
         
         try:
+            # Hashear la contraseña ingresada
+            password_hash = hashlib.sha256(password.value.encode()).hexdigest()
+            
             with get_db_connection() as conn:
                 cur = conn.cursor()
                 
-                # Buscar usuario por username o usuario
-                cur.execute(
-                    """SELECT id, username, password, nombre_completo, rol, estado 
-                       FROM usuarios 
-                       WHERE (username = %s OR usuario = %s) AND estado = 'Activo'""",
-                    (usuario.value, usuario.value)
-                )
-                datos = cur.fetchone()
+                # Buscar usuario con contraseña hasheada
+                cur.execute("""
+                    SELECT id, username, nombre_completo, rol, estado 
+                    FROM usuarios 
+                    WHERE (username = %s OR usuario = %s) AND password = %s
+                """, (usuario.value, usuario.value, password_hash))
                 
-                if datos:
-                    user_id, username, password_hash, nombre_completo, rol, estado = datos
-                    
-                    # Verificar contraseña (SHA256)
-                    password_ingresada = hashlib.sha256(password.value.encode()).hexdigest()
-                    
-                    if password_ingresada == password_hash:
-                        print(f"✅ Login exitoso para: {username} ({rol})")
-                        mensaje.value = ""
-                        
-                        # Guardar sesión
-                        page.session.set("user_id", user_id)
-                        page.session.set("username", username)
-                        page.session.set("nombre_completo", nombre_completo)
-                        page.session.set("rol", rol)
-                        
-                        # Actualizar último acceso
-                        cur.execute(
-                            "UPDATE usuarios SET ultimo_acceso = CURRENT_TIMESTAMP WHERE id = %s",
-                            (user_id,)
-                        )
-                        conn.commit()
-                        
-                        page.snack_bar = ft.SnackBar(
-                            ft.Text(f"✅ Bienvenido {nombre_completo}"), 
-                            open=True,
-                            bgcolor="#4CAF50"
-                        )
-                        page.update()
-                        
-                        # Redirigir al dashboard
-                        from modules import dashboard
-                        dashboard.dashboard_view(container, page=page)
-                    else:
-                        mensaje.value = "❌ Contraseña incorrecta"
-                        print(f"❌ Contraseña incorrecta para: {usuario.value}")
-                        page.update()
-                else:
-                    mensaje.value = "❌ Usuario no encontrado o inactivo"
-                    print(f"❌ Usuario no encontrado: {usuario.value}")
+                datos = cur.fetchone()
+
+            if datos:
+                user_id, username, nombre_completo, rol, estado = datos
+                
+                # Verificar si el usuario está activo
+                if estado != 'Activo':
+                    mensaje.value = "❌ Usuario inactivo. Contacta al administrador."
+                    print(f"❌ Intento #{contador_intentos['count']}: Usuario inactivo")
                     page.update()
-                    
+                    return
+                
+                # Actualizar último acceso
+                try:
+                    with get_db_connection() as conn:
+                        cur = conn.cursor()
+                        cur.execute("UPDATE usuarios SET ultimo_acceso = CURRENT_TIMESTAMP WHERE id = %s", (user_id,))
+                        conn.commit()
+                except Exception as update_error:
+                    print(f"⚠️ Error actualizando último acceso: {update_error}")
+                
+                mensaje.value = ""
+                page.snack_bar = ft.SnackBar(
+                    ft.Text(f"✅ Bienvenido {nombre_completo} ({rol})", color="white"),
+                    bgcolor="#2E7D32",
+                    duration=3000
+                )
+                page.snack_bar.open = True
+                print(f"✅ Login exitoso #{contador_intentos['count']}: {username} - {rol}")
+                page.update()
+                
+                # Importar dashboard y redirigir
+                try:
+                    from modules import dashboard
+                    dashboard.dashboard_view(container, page=page)
+                except Exception as dashboard_error:
+                    print(f"❌ Error cargando dashboard: {dashboard_error}")
+                    mensaje.value = f"❌ Error cargando sistema: {str(dashboard_error)}"
+                    page.update()
+            else:
+                mensaje.value = "❌ Usuario o contraseña incorrectos"
+                print(f"❌ Error #{contador_intentos['count']}: Credenciales inválidas")
+                page.update()
+                
         except Exception as err:
             mensaje.value = f"❌ Error del sistema: {err}"
-            print(f"❌ Error #{contador_intentos['valor']}: {err}")
+            print(f"❌ Error #{contador_intentos['count']}: ❌ Error del sistema: {err}")
             import traceback
             traceback.print_exc()
             page.update()
 
-    def on_enter_pressed(e):
-        """Permite login con Enter"""
+    def on_password_submit(e):
+        """Permite login al presionar Enter en el campo de contraseña"""
         autenticar(e)
 
-    usuario.on_submit = on_enter_pressed
-    password.on_submit = on_enter_pressed
+    password.on_submit = on_password_submit
 
     btn_login = ft.ElevatedButton(
-        text="Iniciar Sesión", 
-        icon=ft.icons.LOGIN,
+        text="Iniciar Sesión",
+        icon=ft.Icons.LOGIN,
         on_click=autenticar,
-        style=ft.ButtonStyle(
-            bgcolor="#2E7D32",
-            color="white",
-            padding=15
-        ),
-        width=300
+        bgcolor="#2E7D32",
+        color="white",
+        width=300,
+        height=45
     )
 
-    # Logo/Título
-    logo = ft.Container(
-        content=ft.Column([
-            ft.Icon(ft.icons.NATURE, size=60, color="#2E7D32"),
-            ft.Text("Vivero Rocío", size=32, weight="bold", color="#2E7D32"),
-            ft.Text("Sistema de Gestión", size=14, color="#666"),
-        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
-        margin=ft.margin.only(bottom=30)
-    )
-
-    # Card de login
+    # Limpiar contenedor
+    container.controls.clear()
+    
+    # Card de login con mejor diseño
     login_card = ft.Container(
         content=ft.Column(
             [
-                logo,
+                ft.Container(
+                    content=ft.Icon(ft.Icons.ECO, size=80, color="#2E7D32"),
+                    padding=ft.padding.only(bottom=10)
+                ),
+                ft.Text(
+                    "Vivero Rocío", 
+                    size=32, 
+                    weight="bold",
+                    color="#2E7D32",
+                    text_align=ft.TextAlign.CENTER
+                ),
+                ft.Text(
+                    "Sistema de Gestión", 
+                    size=16, 
+                    color="#666",
+                    text_align=ft.TextAlign.CENTER
+                ),
+                ft.Container(height=20),
                 usuario,
                 password,
                 mensaje,
-                btn_login,
                 ft.Container(height=10),
-                ft.Text("Usuario: admin | Contraseña: admin123", size=11, color="#999", italic=True)
+                btn_login,
+                ft.Container(height=20),
+                ft.Text(
+                    "Usuario por defecto: admin | Contraseña: admin123",
+                    size=12,
+                    color="#999",
+                    text_align=ft.TextAlign.CENTER
+                )
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=15
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=10
         ),
+        width=400,
         padding=40,
-        bgcolor="white",
         border_radius=15,
+        bgcolor="white",
         shadow=ft.BoxShadow(
             spread_radius=1,
             blur_radius=15,
-            color=ft.colors.with_opacity(0.1, "black"),
+            color=ft.colors.with_opacity(0.3, "black"),
+            offset=ft.Offset(0, 4)
         )
     )
-
-    container.controls.clear()
+    
+    # Centrar el card en la página
     container.controls.append(
         ft.Container(
             content=login_card,
             alignment=ft.alignment.center,
             expand=True,
-            bgcolor="#f5f5f5"
+            gradient=ft.LinearGradient(
+                begin=ft.alignment.top_left,
+                end=ft.alignment.bottom_right,
+                colors=["#E8F5E9", "#C8E6C9"]
+            )
         )
     )
-    page.update()
+    
     print("✅ Login view con mejor contraste renderizado")
+    page.update()

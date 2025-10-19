@@ -50,19 +50,19 @@ ERROR_COLOR = "#F44336"
 
 def crud_view(content, page=None):
     print("🛒 Iniciando módulo de ventas PdV COMPLETO (PostgreSQL)...")
-    
+
     # Limpiar contenido
     if hasattr(content, 'controls'):
         content.controls.clear()
     else:
         content.content = None
-    
+
     # Verificar usuario
     current_user = session.get_current_user()
     if not current_user:
         print("❌ Usuario no encontrado")
         return
-    
+
     # Verificar permisos
     puede_ver = session.tiene_permiso('ventas', 'ver')
     if not puede_ver:
@@ -75,9 +75,9 @@ def crud_view(content, page=None):
     modal_overlay = None
     actualizar_carrito_fn = None
     actualizar_ventas_fn = None
-    
+
     print(f"👤 Usuario actual: {current_user['nombre_completo']} (ID: {current_user['id']})")
-    
+
     # --- Función para volver al dashboard ---
     def volver_dashboard():
         """Regresa al dashboard principal"""
@@ -87,7 +87,7 @@ def crud_view(content, page=None):
             dashboard.dashboard_view(content, page=page)
         except Exception as e:
             print(f"❌ Error navegando al dashboard: {e}")
-    
+
     # --- Funciones de base de datos con PostgreSQL ---
     def obtener_sesion_activa():
         """Obtiene la sesión de caja activa del usuario"""
@@ -113,22 +113,22 @@ def crud_view(content, page=None):
         try:
             with get_db_connection() as conn:
                 cur = conn.cursor()
-                
+
                 # Verificar sesión existente
                 cur.execute("""
-                    SELECT id FROM sesiones_caja 
+                    SELECT id FROM sesiones_caja
                     WHERE usuario_id = %s AND estado = 'Abierta'
                 """, (current_user['id'],))
-                
+
                 sesion_existente = cur.fetchone()
                 if sesion_existente:
                     print(f"⚠️ Ya existe sesión abierta: {sesion_existente[0]}")
                     return sesion_existente[0]
-                
+
                 # Obtener o crear caja principal
                 cur.execute("SELECT id FROM cajas WHERE nombre = 'Caja Principal' LIMIT 1")
                 caja_result = cur.fetchone()
-                
+
                 if not caja_result:
                     print("📦 Creando caja principal...")
                     cur.execute("""
@@ -141,20 +141,20 @@ def crud_view(content, page=None):
                 else:
                     caja_id = caja_result[0]
                     print(f"📦 Usando caja existente ID: {caja_id}")
-                
+
                 # Crear nueva sesión
                 cur.execute("""
                     INSERT INTO sesiones_caja (caja_id, usuario_id, monto_apertura, estado, fecha_apertura)
                     VALUES (%s, %s, %s, 'Abierta', CURRENT_TIMESTAMP)
                     RETURNING id
                 """, (caja_id, current_user['id'], monto_apertura))
-                
+
                 sesion_id = cur.fetchone()[0]
                 conn.commit()
-                
+
                 print(f"✅ Caja abierta exitosamente - ID: {sesion_id}, Monto: ₲{monto_apertura:,}")
                 return sesion_id
-                
+
         except Exception as e:
             print(f"❌ Error abriendo caja: {e}")
             import traceback
@@ -166,34 +166,34 @@ def crud_view(content, page=None):
         try:
             with get_db_connection() as conn:
                 cur = conn.cursor()
-                
+
                 # Calcular total de ventas
                 cur.execute("""
-                    SELECT COALESCE(SUM(total), 0) FROM ventas 
+                    SELECT COALESCE(SUM(total), 0) FROM ventas
                     WHERE sesion_caja_id = %s
                 """, (sesion_id,))
                 total_ventas = cur.fetchone()[0] or 0
-                
+
                 # Obtener monto de apertura
                 cur.execute("SELECT monto_apertura FROM sesiones_caja WHERE id = %s", (sesion_id,))
                 monto_apertura_result = cur.fetchone()
                 monto_apertura = monto_apertura_result[0] if monto_apertura_result else 0
-                
+
                 # Calcular diferencia
                 diferencia = monto_cierre - (monto_apertura + total_ventas)
-                
+
                 # Actualizar sesión
                 cur.execute("""
-                    UPDATE sesiones_caja 
+                    UPDATE sesiones_caja
                     SET fecha_cierre = CURRENT_TIMESTAMP,
                         monto_cierre = %s,
                         estado = 'Cerrada',
                         observaciones = %s
                     WHERE id = %s
                 """, (monto_cierre, observaciones, sesion_id))
-                
+
                 conn.commit()
-                
+
                 print(f"✅ Caja cerrada - ID: {sesion_id}, Cierre: ₲{monto_cierre:,}, Ventas: ₲{total_ventas:,}, Diferencia: ₲{diferencia:,}")
                 return True
         except Exception as e:
@@ -207,9 +207,9 @@ def crud_view(content, page=None):
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT id, nombre, categoria,
-                           COALESCE(NULLIF(precio_venta, 0), NULLIF(precio, 0), 0) AS precio_final,
-                           COALESCE(stock, 0) AS stock_final,
-                           COALESCE(unidad_medida, unidad, 'Unidad') AS unidad_final
+                        COALESCE(NULLIF(precio_venta, 0), NULLIF(precio, 0), 0) AS precio_final,
+                        COALESCE(stock, 0) AS stock_final,
+                        COALESCE(unidad_medida, unidad, 'Unidad') AS unidad_final
                     FROM productos
                     WHERE COALESCE(stock, 0) >= 0
                     ORDER BY nombre
@@ -227,11 +227,11 @@ def crud_view(content, page=None):
             with get_db_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
-                    SELECT id, nombre, 
-                           COALESCE(telefono, tel, '') as telefono,
-                           COALESCE(email, correo, '') as email, 
-                           COALESCE(direccion, ubicacion, '') as direccion
-                    FROM clientes 
+                    SELECT id, nombre,
+                        COALESCE(telefono, tel, '') as telefono,
+                        COALESCE(email, correo, '') as email,
+                        COALESCE(direccion, ubicacion, '') as direccion
+                    FROM clientes
                     ORDER BY nombre
                 """)
                 clientes = cur.fetchall()
@@ -247,11 +247,11 @@ def crud_view(content, page=None):
             with get_db_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
-                    SELECT id, nombre, 
-                           COALESCE(telefono, tel, '') as telefono,
-                           COALESCE(email, correo, '') as email,
-                           COALESCE(direccion, ubicacion, '') as direccion
-                    FROM clientes 
+                    SELECT id, nombre,
+                        COALESCE(telefono, tel, '') as telefono,
+                        COALESCE(email, correo, '') as email,
+                        COALESCE(direccion, ubicacion, '') as direccion
+                    FROM clientes
                     WHERE id = %s
                 """, (cliente_id,))
                 cliente = cur.fetchone()
@@ -266,12 +266,12 @@ def crud_view(content, page=None):
             with get_db_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
-                    SELECT COALESCE(v.numero_venta, 'V' || v.id) as numero, 
-                           v.total, 
-                           COALESCE(v.metodo_pago, 'Efectivo') as metodo, 
-                           v.fecha_venta, 
-                           COALESCE(c.nombre, 'Cliente General') as cliente_nombre,
-                           COALESCE(u.nombre_completo, 'N/A') as vendedor
+                    SELECT COALESCE(v.numero_venta, 'V' || v.id) as numero,
+                        v.total,
+                        COALESCE(v.metodo_pago, 'Efectivo') as metodo,
+                        v.fecha_venta,
+                        COALESCE(c.nombre, 'Cliente General') as cliente_nombre,
+                        COALESCE(u.nombre_completo, 'N/A') as vendedor
                     FROM ventas v
                     LEFT JOIN clientes c ON v.cliente_id = c.id
                     LEFT JOIN usuarios u ON v.usuario_id = u.id
@@ -294,50 +294,50 @@ def crud_view(content, page=None):
         """Guarda la venta completa con detalles - PostgreSQL"""
         try:
             print(f"💾 Guardando venta en PostgreSQL...")
-            
+
             with get_db_connection() as conn:
                 cur = conn.cursor()
-                
+
                 numero_venta = generar_numero_venta()
                 print(f"💾 Guardando venta {numero_venta}...")
-                
+
                 # Insertar venta principal
                 cur.execute("""
                     INSERT INTO ventas (numero_venta, sesion_caja_id, cliente_id, usuario_id,
-                                      total, subtotal, descuento, monto_pagado, vuelto, 
-                                      metodo_pago, fecha_venta, estado)
+                                    total, subtotal, descuento, monto_pagado, vuelto,
+                                    metodo_pago, fecha_venta, estado)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, 'Completada')
                     RETURNING id
                 """, (numero_venta, sesion_actual["id"], cliente_id, current_user['id'],
-                      total, subtotal, descuento, monto_pagado, vuelto, metodo_pago))
-                
+                    total, subtotal, descuento, monto_pagado, vuelto, metodo_pago))
+
                 venta_id = cur.fetchone()[0]
                 print(f"✅ Venta principal guardada con ID: {venta_id}")
-                
+
                 # Insertar detalles y actualizar stock
                 for i, item in enumerate(carrito, 1):
                     producto_id, cantidad, precio_unitario = item['id'], item['cantidad'], item['precio']
                     subtotal_item = cantidad * precio_unitario
-                    
+
                     # Insertar detalle
                     cur.execute("""
                         INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario, subtotal)
                         VALUES (%s, %s, %s, %s, %s)
                     """, (venta_id, producto_id, cantidad, precio_unitario, subtotal_item))
-                    
+
                     # Actualizar stock
                     cur.execute("""
                         UPDATE productos SET stock = stock - %s WHERE id = %s
                     """, (cantidad, producto_id))
-                    
+
                     print(f"  📋 Detalle {i}: {item['nombre']} x{cantidad} = ₲{subtotal_item:,}")
-                
+
                 # Confirmar transacción
                 conn.commit()
-                
+
                 print(f"🎉 Venta {numero_venta} guardada exitosamente - Total: ₲{total:,}")
                 return True, numero_venta
-                
+
         except Exception as e:
             print(f"❌ Error guardando venta: {e}")
             import traceback
@@ -360,14 +360,14 @@ def crud_view(content, page=None):
     def agregar_al_carrito(prod_id, prod_nombre, prod_precio, prod_stock, prod_unidad):
         """Agrega o actualiza producto en el carrito"""
         print(f"🛒 AGREGANDO AL CARRITO: {prod_nombre} (ID: {prod_id}) - Stock: {prod_stock}")
-        
+
         # Buscar si ya existe en el carrito
         item_existente = None
         for i, item in enumerate(carrito_venta):
             if item['id'] == prod_id:
                 item_existente = item
                 break
-        
+
         if item_existente:
             # Producto ya existe - aumentar cantidad
             if item_existente['cantidad'] < prod_stock:
@@ -402,14 +402,14 @@ def crud_view(content, page=None):
                 bgcolor=SUCCESS_COLOR,
                 duration=1500,
             )
-        
+
         # Mostrar notificación y actualizar carrito
         page.snack_bar.open = True
         page.update()
-        
+
         if actualizar_carrito_fn:
             actualizar_carrito_fn()
-        
+
         print(f"🛒 Carrito actual: {len(carrito_venta)} productos únicos")
 
     # --- FUNCIÓN PARA GENERAR Y MOSTRAR TICKET PDF ---
@@ -420,28 +420,28 @@ def crud_view(content, page=None):
             print(f"📄 Número de venta: {numero_venta}")
             print(f"🛒 Items en carrito: {len(carrito_items)}")
             print(f"💰 Total: ₲{totales_info['total']:,}")
-            
+
             # Generar PDF
             archivo_pdf = generar_ticket_pdf(
-                numero_venta, 
-                cliente_datos, 
-                carrito_items, 
-                totales_info, 
+                numero_venta,
+                cliente_datos,
+                carrito_items,
+                totales_info,
                 current_user['nombre_completo']
             )
-            
+
             if archivo_pdf:
                 print(f"✅ PDF generado exitosamente: {archivo_pdf}")
-                
+
                 # Verificar que el archivo existe
                 import os
                 if os.path.exists(archivo_pdf):
                     file_size = os.path.getsize(archivo_pdf)
                     ruta_absoluta = os.path.abspath(archivo_pdf)
-                    
+
                     print(f"📄 Archivo verificado: {file_size} bytes")
                     print(f"📂 Ubicación: {ruta_absoluta}")
-                    
+
                     # Mostrar mensaje de éxito
                     page.snack_bar = ft.SnackBar(
                         content=ft.Text(f"📄 Ticket PDF generado: {archivo_pdf}", color="white"),
@@ -450,7 +450,7 @@ def crud_view(content, page=None):
                     )
                     page.snack_bar.open = True
                     page.update()
-                    
+
                     # Intentar abrir el PDF
                     if abrir_pdf(archivo_pdf):
                         print("📖 PDF abierto exitosamente")
@@ -469,7 +469,7 @@ def crud_view(content, page=None):
                     raise Exception(f"El archivo PDF no se encontró: {archivo_pdf}")
             else:
                 raise Exception("La función generar_ticket_pdf retornó None")
-                    
+
         except Exception as e:
             error_msg = str(e)
             print(f"❌ Error generando PDF: {error_msg}")
@@ -486,12 +486,12 @@ def crud_view(content, page=None):
     def mostrar_ticket_venta(numero_venta, cliente_datos, carrito_items, totales_info):
         """Muestra el ticket de venta como modal con opción de PDF"""
         nonlocal modal_overlay
-        
+
         now = datetime.now()
         fecha_hora = now.strftime("%d/%m/%Y %H:%M:%S")
-        
+
         print(f"🧾 Mostrando ticket en pantalla: {numero_venta}")
-        
+
         # Contenido del ticket
         ticket_content = ft.Column([
             # Encabezado
@@ -505,9 +505,9 @@ def crud_view(content, page=None):
                 border_radius=12,
                 bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
             ),
-            
+
             ft.Divider(height=3, color=PRIMARY_COLOR),
-            
+
             # Info de la venta
             ft.Row([
                 ft.Column([
@@ -521,14 +521,14 @@ def crud_view(content, page=None):
                     ft.Text(f"📧 Email: {cliente_datos['email'] if cliente_datos and cliente_datos['email'] else 'N/A'}", size=12),
                 ], expand=True, spacing=3),
             ]),
-            
+
             ft.Divider(),
-            
+
             # Detalle de productos
             ft.Text("📋 DETALLE DE PRODUCTOS", weight="bold", size=16, text_align=ft.TextAlign.CENTER, color=PRIMARY_COLOR),
             ft.Container(height=8),
         ], spacing=12)
-        
+
         # Agregar productos
         for i, item in enumerate(carrito_items, 1):
             producto_row = ft.Container(
@@ -537,75 +537,75 @@ def crud_view(content, page=None):
                     ft.Text(item['nombre'], size=13, expand=2, weight="bold"),
                     ft.Text(f"x{item['cantidad']}", size=12, text_align=ft.TextAlign.CENTER, width=50),
                     ft.Text(f"₲{item['precio']:,.0f}".replace(',', '.'), size=12, text_align=ft.TextAlign.RIGHT, width=90),
-                    ft.Text(f"₲{item['cantidad'] * item['precio']:,.0f}".replace(',', '.'), 
-                           size=13, text_align=ft.TextAlign.RIGHT, weight="bold", width=100, color=PRIMARY_COLOR),
+                    ft.Text(f"₲{item['cantidad'] * item['precio']:,.0f}".replace(',', '.'),
+                        size=13, text_align=ft.TextAlign.RIGHT, weight="bold", width=100, color=PRIMARY_COLOR),
                 ]),
                 padding=ft.padding.symmetric(vertical=4, horizontal=8),
                 border_radius=6,
                 bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.GREY) if i % 2 == 0 else None,
             )
             ticket_content.controls.append(producto_row)
-        
+
         # Totales
         ticket_content.controls.extend([
             ft.Container(height=10),
             ft.Divider(color=PRIMARY_COLOR),
-            
+
             ft.Container(
                 content=ft.Column([
                     ft.Row([
                         ft.Text("💰 SUBTOTAL:", weight="bold", size=16, expand=True),
-                        ft.Text(f"₲{totales_info['subtotal']:,.0f}".replace(',', '.'), 
-                               size=16, weight="bold", text_align=ft.TextAlign.RIGHT),
+                        ft.Text(f"₲{totales_info['subtotal']:,.0f}".replace(',', '.'),
+                            size=16, weight="bold", text_align=ft.TextAlign.RIGHT),
                     ]),
                     ft.Row([
                         ft.Text("🎯 TOTAL:", weight="bold", size=20, color=PRIMARY_COLOR, expand=True),
-                        ft.Text(f"₲{totales_info['total']:,.0f}".replace(',', '.'), 
-                               size=20, weight="bold", color=PRIMARY_COLOR, text_align=ft.TextAlign.RIGHT),
+                        ft.Text(f"₲{totales_info['total']:,.0f}".replace(',', '.'),
+                            size=20, weight="bold", color=PRIMARY_COLOR, text_align=ft.TextAlign.RIGHT),
                     ]),
                 ], spacing=8),
                 padding=15,
                 border_radius=10,
                 bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
             ),
-            
+
             ft.Container(height=5),
             ft.Divider(),
-            
+
             # Detalles de pago
             ft.Column([
                 ft.Row([
                     ft.Text("💵 Pago recibido:", size=14, expand=True),
-                    ft.Text(f"₲{totales_info['monto_pagado']:,.0f}".replace(',', '.'), 
-                           size=14, text_align=ft.TextAlign.RIGHT),
+                    ft.Text(f"₲{totales_info['monto_pagado']:,.0f}".replace(',', '.'),
+                        size=14, text_align=ft.TextAlign.RIGHT),
                 ]),
                 ft.Row([
                     ft.Text("💸 Vuelto:", size=14, expand=True),
-                    ft.Text(f"₲{totales_info['vuelto']:,.0f}".replace(',', '.'), 
-                           size=14, text_align=ft.TextAlign.RIGHT, color=SUCCESS_COLOR if totales_info['vuelto'] >= 0 else ERROR_COLOR),
+                    ft.Text(f"₲{totales_info['vuelto']:,.0f}".replace(',', '.'),
+                        size=14, text_align=ft.TextAlign.RIGHT, color=SUCCESS_COLOR if totales_info['vuelto'] >= 0 else ERROR_COLOR),
                 ]),
                 ft.Row([
                     ft.Text("💳 Método:", size=14, expand=True),
                     ft.Text(totales_info['metodo_pago'], size=14, text_align=ft.TextAlign.RIGHT, weight="bold"),
                 ]),
             ], spacing=6),
-            
+
             ft.Container(height=20),
-            
+
             # Mensaje final
             ft.Container(
                 content=ft.Column([
-                    ft.Text("¡GRACIAS POR SU COMPRA!", size=18, text_align=ft.TextAlign.CENTER, 
-                           weight="bold", color=PRIMARY_COLOR),
-                    ft.Text("Vuelva pronto", size=14, text_align=ft.TextAlign.CENTER, 
-                           style=ft.TextStyle(italic=True)),
+                    ft.Text("¡GRACIAS POR SU COMPRA!", size=18, text_align=ft.TextAlign.CENTER,
+                        weight="bold", color=PRIMARY_COLOR),
+                    ft.Text("Vuelva pronto", size=14, text_align=ft.TextAlign.CENTER,
+                        style=ft.TextStyle(italic=True)),
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
                 padding=15,
                 border_radius=10,
                 bgcolor=ft.Colors.with_opacity(0.05, SUCCESS_COLOR),
             ),
         ])
-        
+
         def cerrar_ticket():
             """Cierra el modal del ticket"""
             nonlocal modal_overlay
@@ -614,7 +614,7 @@ def crud_view(content, page=None):
             modal_overlay = None
             page.update()
             print("🔚 Ticket cerrado")
-        
+
         def generar_pdf_handler():
             """Handler para generar PDF"""
             try:
@@ -633,7 +633,7 @@ def crud_view(content, page=None):
                 )
                 page.snack_bar.open = True
                 page.update()
-        
+
         # Modal del ticket
         ticket_modal = ft.Container(
             content=ft.Column([
@@ -647,11 +647,11 @@ def crud_view(content, page=None):
                         icon_color=ERROR_COLOR,
                     ),
                 ]),
-                
+
                 # Contenido del ticket con scroll
                 ft.Container(
                     content=ft.Column(
-                        controls=[ticket_content], 
+                        controls=[ticket_content],
                         scroll=ft.ScrollMode.AUTO,
                         spacing=0
                     ),
@@ -661,7 +661,7 @@ def crud_view(content, page=None):
                     border_radius=12,
                     border=ft.border.all(2, ft.Colors.GREY_300),
                 ),
-                
+
                 # Botones de acción
                 ft.Row([
                     ft.ElevatedButton(
@@ -698,24 +698,24 @@ def crud_view(content, page=None):
             border_radius=18,
             shadow=ft.BoxShadow(blur_radius=40, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
         )
-        
+
         # Crear overlay
         modal_overlay = ft.Container(
             content=ft.Stack([
                 ft.Container(
-                    bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK), 
-                    expand=True, 
+                    bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
+                    expand=True,
                     on_click=lambda e: cerrar_ticket()
                 ),
                 ft.Container(
-                    content=ticket_modal, 
-                    alignment=ft.alignment.center, 
+                    content=ticket_modal,
+                    alignment=ft.alignment.center,
                     expand=True
                 ),
             ]),
             expand=True,
         )
-        
+
         page.overlay.append(modal_overlay)
         page.update()
 
@@ -723,7 +723,7 @@ def crud_view(content, page=None):
     def mostrar_overlay_abrir_caja():
         """Modal para abrir caja"""
         nonlocal modal_overlay
-        
+
         monto_field = ft.TextField(
             label="💰 Monto inicial (₲)",
             keyboard_type=ft.KeyboardType.NUMBER,
@@ -733,39 +733,39 @@ def crud_view(content, page=None):
             hint_text="Ingrese el monto con el que abre la caja",
             prefix_text="₲ ",
         )
-        
+
         status_text = ft.Text("", size=12, text_align=ft.TextAlign.CENTER)
-        
+
         def procesar_apertura():
             try:
                 status_text.value = "⏳ Abriendo caja..."
                 status_text.color = ft.Colors.BLUE
                 page.update()
-                
+
                 monto_valor = monto_field.value or "0"
                 monto_clean = str(monto_valor).replace('₲', '').replace('.', '').replace(',', '').replace(' ', '').strip()
-                
+
                 if not monto_clean or not monto_clean.isdigit():
                     status_text.value = "❌ Ingrese un monto válido"
                     status_text.color = ERROR_COLOR
                     page.update()
                     return
-                
+
                 monto = int(monto_clean)
                 if monto < 0:
                     status_text.value = "❌ El monto no puede ser negativo"
                     status_text.color = ERROR_COLOR
                     page.update()
                     return
-                
+
                 sesion_id = abrir_caja(monto)
-                
+
                 if sesion_id:
                     sesion_actual["id"] = sesion_id
                     sesion_actual["monto_apertura"] = monto
-                    
+
                     cerrar_overlay()
-                    
+
                     page.snack_bar = ft.SnackBar(
                         content=ft.Text(f"✅ Caja abierta con {formatear_guaranies(monto)}", color="white"),
                         bgcolor=SUCCESS_COLOR,
@@ -773,42 +773,42 @@ def crud_view(content, page=None):
                     )
                     page.snack_bar.open = True
                     page.update()
-                    
+
                     # Recargar interfaz
                     crud_view(content, page)
                 else:
                     status_text.value = "❌ Error al abrir la caja"
                     status_text.color = ERROR_COLOR
                     page.update()
-                    
+
             except Exception as ex:
                 print(f"❌ Error en apertura: {ex}")
                 status_text.value = f"❌ Error: {str(ex)}"
                 status_text.color = ERROR_COLOR
                 page.update()
-        
+
         def cerrar_overlay():
             nonlocal modal_overlay
             if modal_overlay in page.overlay:
                 page.overlay.remove(modal_overlay)
             modal_overlay = None
             page.update()
-        
+
         modal_content = ft.Container(
             content=ft.Column([
                 ft.Row([
                     ft.Icon(ft.Icons.LOCK_OPEN, size=32, color=SUCCESS_COLOR),
                     ft.Text("Abrir Caja", size=22, weight="bold", color=SUCCESS_COLOR),
                 ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-                
+
                 ft.Divider(color=SUCCESS_COLOR),
-                
+
                 ft.Text("Ingrese el monto inicial con el que abre la caja:", size=14, text_align=ft.TextAlign.CENTER),
                 monto_field,
                 status_text,
-                
+
                 ft.Container(height=15),
-                
+
                 ft.Row([
                     ft.TextButton("Cancelar", on_click=lambda e: cerrar_overlay()),
                     ft.ElevatedButton(
@@ -827,7 +827,7 @@ def crud_view(content, page=None):
             bgcolor=ft.Colors.WHITE,
             shadow=ft.BoxShadow(blur_radius=25, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
         )
-        
+
         modal_overlay = ft.Container(
             content=ft.Stack([
                 ft.Container(bgcolor=ft.Colors.with_opacity(0.7, ft.Colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
@@ -835,65 +835,65 @@ def crud_view(content, page=None):
             ]),
             expand=True,
         )
-        
+
         page.overlay.append(modal_overlay)
         page.update()
 
     def mostrar_overlay_cerrar_caja():
         """Modal para cerrar caja"""
         nonlocal modal_overlay
-        
+
         # Calcular ventas del día
         ventas_dia = obtener_ventas_del_dia()
         total_ventas_dia = sum(venta[1] for venta in ventas_dia)
         monto_esperado = sesion_actual["monto_apertura"] + total_ventas_dia
-        
+
         monto_field = ft.TextField(
-            label="💰 Monto de cierre (₲)", 
-            keyboard_type=ft.KeyboardType.NUMBER, 
-            width=320, 
+            label="💰 Monto de cierre (₲)",
+            keyboard_type=ft.KeyboardType.NUMBER,
+            width=320,
             value=str(int(monto_esperado)),
             hint_text="Cuente el dinero físico en caja",
             prefix_text="₲ ",
         )
-        
+
         obs_field = ft.TextField(
-            label="📝 Observaciones (opcional)", 
-            multiline=True, 
-            max_lines=3, 
+            label="📝 Observaciones (opcional)",
+            multiline=True,
+            max_lines=3,
             width=320,
             hint_text="Comentarios sobre el cierre de caja",
         )
-        
+
         status_text = ft.Text("", size=12, text_align=ft.TextAlign.CENTER)
-        
+
         def procesar_cierre():
             try:
                 status_text.value = "⏳ Cerrando caja..."
                 status_text.color = ft.Colors.BLUE
                 page.update()
-                
+
                 monto_str = monto_field.value.replace('₲', '').replace('.', '').replace(',', '').strip()
                 monto = int(monto_str) if monto_str else 0
                 obs = obs_field.value or ""
-                
+
                 if cerrar_caja(sesion_actual["id"], monto, obs):
                     # Calcular diferencia para mostrar
                     diferencia = monto - monto_esperado
-                    
+
                     # Limpiar variables
                     sesion_actual["id"] = None
                     sesion_actual["monto_apertura"] = 0
                     carrito_venta.clear()
-                    
+
                     cerrar_overlay()
-                    
+
                     # Mensaje de cierre con detalles
                     mensaje_cierre = f"✅ Caja cerrada\n💰 Esperado: {formatear_guaranies(monto_esperado)}\n💵 Contado: {formatear_guaranies(monto)}"
                     if diferencia != 0:
                         signo = "+" if diferencia > 0 else ""
                         mensaje_cierre += f"\n📊 Diferencia: {signo}{formatear_guaranies(diferencia)}"
-                    
+
                     page.snack_bar = ft.SnackBar(
                         content=ft.Text(mensaje_cierre, color="white"),
                         bgcolor=SUCCESS_COLOR,
@@ -901,7 +901,7 @@ def crud_view(content, page=None):
                     )
                     page.snack_bar.open = True
                     page.update()
-                    
+
                     # Recargar interfaz
                     crud_view(content, page)
                 else:
@@ -912,23 +912,23 @@ def crud_view(content, page=None):
                 status_text.value = "❌ Ingrese un monto válido"
                 status_text.color = ERROR_COLOR
                 page.update()
-        
+
         def cerrar_overlay():
             nonlocal modal_overlay
             if modal_overlay in page.overlay:
                 page.overlay.remove(modal_overlay)
             modal_overlay = None
             page.update()
-        
+
         modal_content = ft.Container(
             content=ft.Column([
                 ft.Row([
                     ft.Icon(ft.Icons.LOCK, size=32, color=WARNING_COLOR),
                     ft.Text("Cerrar Caja", size=22, weight="bold", color=WARNING_COLOR),
                 ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-                
+
                 ft.Divider(color=WARNING_COLOR),
-                
+
                 # Resumen
                 ft.Container(
                     content=ft.Column([
@@ -941,14 +941,14 @@ def crud_view(content, page=None):
                     border_radius=8,
                     bgcolor=ft.Colors.with_opacity(0.1, WARNING_COLOR),
                 ),
-                
+
                 ft.Text("Cuente el dinero físico en caja:", size=14),
                 monto_field,
                 obs_field,
                 status_text,
-                
+
                 ft.Container(height=10),
-                
+
                 ft.Row([
                     ft.TextButton("Cancelar", on_click=lambda e: cerrar_overlay()),
                     ft.ElevatedButton(
@@ -967,7 +967,7 @@ def crud_view(content, page=None):
             bgcolor=ft.Colors.WHITE,
             shadow=ft.BoxShadow(blur_radius=25, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
         )
-        
+
         modal_overlay = ft.Container(
             content=ft.Stack([
                 ft.Container(bgcolor=ft.Colors.with_opacity(0.7, ft.Colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
@@ -975,26 +975,26 @@ def crud_view(content, page=None):
             ]),
             expand=True,
         )
-        
+
         page.overlay.append(modal_overlay)
         page.update()
 
     def mostrar_overlay_pago():
         """Modal para procesar pago con datos completos del cliente"""
         nonlocal modal_overlay
-        
+
         clientes = obtener_clientes()
         subtotal, descuento, total = calcular_totales()
-        
+
         print(f"💳 Iniciando proceso de pago - Total: {formatear_guaranies(total)}")
-        
+
         cliente_dropdown = ft.Dropdown(
             label="👤 Cliente (opcional)",
             options=[ft.dropdown.Option(key=str(c[0]), text=f"{c[1]}") for c in clientes],
             width=420,
             hint_text="Seleccione un cliente o deje vacío",
         )
-        
+
         # Contenedor para datos del cliente
         cliente_info = ft.Container(
             content=ft.Text("💡 Seleccione un cliente para ver sus datos", size=12, color=ft.Colors.GREY_600),
@@ -1003,7 +1003,7 @@ def crud_view(content, page=None):
             bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.GREY),
             visible=False,
         )
-        
+
         monto_field = ft.TextField(
             label="💵 Monto recibido (₲)",
             keyboard_type=ft.KeyboardType.NUMBER,
@@ -1012,7 +1012,7 @@ def crud_view(content, page=None):
             hint_text=f"Mínimo: {formatear_guaranies(total)}",
             prefix_text="₲ ",
         )
-        
+
         metodo_dropdown = ft.Dropdown(
             label="💳 Método de pago",
             options=[
@@ -1025,10 +1025,10 @@ def crud_view(content, page=None):
             value="Efectivo",
             width=420,
         )
-        
+
         vuelto_text = ft.Text("💸 Vuelto: ₲ 0", size=18, weight="bold", color=SUCCESS_COLOR)
         status_text = ft.Text("", size=12, text_align=ft.TextAlign.CENTER)
-        
+
         def actualizar_cliente_info(e):
             """Actualiza la información del cliente seleccionado"""
             if cliente_dropdown.value:
@@ -1046,16 +1046,16 @@ def crud_view(content, page=None):
             else:
                 cliente_info.visible = False
             page.update()
-        
+
         cliente_dropdown.on_change = actualizar_cliente_info
-        
+
         def calcular_vuelto():
             """Calcula y muestra el vuelto en tiempo real"""
             try:
                 monto_str = monto_field.value.replace('₲', '').replace('.', '').replace(',', '').strip()
                 monto = int(monto_str) if monto_str else 0
                 vuelto = monto - total
-                
+
                 if vuelto >= 0:
                     vuelto_text.value = f"💸 Vuelto: {formatear_guaranies(vuelto)}"
                     vuelto_text.color = SUCCESS_COLOR
@@ -1067,29 +1067,29 @@ def crud_view(content, page=None):
                 vuelto_text.value = "💸 Vuelto: ₲ 0"
                 vuelto_text.color = SUCCESS_COLOR
                 page.update()
-        
+
         def procesar_pago():
             """Procesa el pago completo"""
             try:
                 status_text.value = "⏳ Procesando pago..."
                 status_text.color = ft.Colors.BLUE
                 page.update()
-                
+
                 monto_str = monto_field.value.replace('₲', '').replace('.', '').replace(',', '').strip()
                 monto_pagado = int(monto_str) if monto_str else 0
-                
+
                 if monto_pagado < total:
                     status_text.value = f"❌ Monto insuficiente. Faltan {formatear_guaranies(total - monto_pagado)}"
                     status_text.color = ERROR_COLOR
                     page.update()
                     return
-                
+
                 vuelto = monto_pagado - total
                 cliente_id = int(cliente_dropdown.value) if cliente_dropdown.value else None
                 metodo = metodo_dropdown.value
-                
+
                 print(f"💳 Procesando: Total={formatear_guaranies(total)}, Pagado={formatear_guaranies(monto_pagado)}, Vuelto={formatear_guaranies(vuelto)}")
-                
+
                 # Obtener datos del cliente para el ticket
                 cliente_datos = None
                 if cliente_id:
@@ -1102,13 +1102,13 @@ def crud_view(content, page=None):
                             'direccion': cliente_datos[4]
                         }
                         print(f"👤 Datos del cliente para ticket: {cliente_datos['nombre']}")
-                
+
                 # Guardar venta
                 exito, resultado = guardar_venta(cliente_id, subtotal, descuento, total, monto_pagado, vuelto, metodo, carrito_venta)
-                
+
                 if exito:
                     print(f"🎉 Venta procesada exitosamente: {resultado}")
-                    
+
                     # Guardar datos para el ticket
                     carrito_backup = carrito_venta.copy()
                     totales_info = {
@@ -1119,49 +1119,49 @@ def crud_view(content, page=None):
                         'vuelto': vuelto,
                         'metodo_pago': metodo
                     }
-                    
+
                     # Limpiar carrito
                     carrito_venta.clear()
                     cerrar_overlay()
-                    
+
                     # Actualizar vistas
                     if actualizar_carrito_fn:
                         actualizar_carrito_fn()
                     if actualizar_ventas_fn:
                         actualizar_ventas_fn()
-                    
+
                     # Mostrar ticket
                     mostrar_ticket_venta(resultado, cliente_datos, carrito_backup, totales_info)
-                    
+
                 else:
                     status_text.value = f"❌ Error: {resultado}"
                     status_text.color = ERROR_COLOR
                     page.update()
-                    
+
             except Exception as ex:
                 print(f"❌ Error procesando pago: {ex}")
                 status_text.value = f"❌ Error: {str(ex)}"
                 status_text.color = ERROR_COLOR
                 page.update()
-        
+
         def cerrar_overlay():
             nonlocal modal_overlay
             if modal_overlay in page.overlay:
                 page.overlay.remove(modal_overlay)
             modal_overlay = None
             page.update()
-        
+
         monto_field.on_change = lambda e: calcular_vuelto()
-        
+
         modal_content = ft.Container(
             content=ft.Column([
                 ft.Row([
                     ft.Icon(ft.Icons.PAYMENT, size=32, color=PRIMARY_COLOR),
                     ft.Text("Procesar Pago", size=24, weight="bold", color=PRIMARY_COLOR),
                 ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-                
+
                 ft.Divider(color=PRIMARY_COLOR),
-                
+
                 # Total destacado
                 ft.Container(
                     content=ft.Column([
@@ -1173,13 +1173,13 @@ def crud_view(content, page=None):
                     bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
                     alignment=ft.alignment.center,
                 ),
-                
+
                 # Campos del formulario
                 cliente_dropdown,
                 cliente_info,
                 monto_field,
                 metodo_dropdown,
-                
+
                 # Vuelto
                 ft.Container(
                     content=vuelto_text,
@@ -1188,11 +1188,11 @@ def crud_view(content, page=None):
                     bgcolor=ft.Colors.with_opacity(0.1, SUCCESS_COLOR),
                     alignment=ft.alignment.center,
                 ),
-                
+
                 status_text,
-                
+
                 ft.Container(height=10),
-                
+
                 # Botones
                 ft.Row([
                     ft.TextButton(
@@ -1217,7 +1217,7 @@ def crud_view(content, page=None):
                         ),
                     ),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                
+
             ], spacing=18, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             width=480,
             padding=30,
@@ -1225,7 +1225,7 @@ def crud_view(content, page=None):
             bgcolor=ft.Colors.WHITE,
             shadow=ft.BoxShadow(blur_radius=30, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
         )
-        
+
         modal_overlay = ft.Container(
             content=ft.Stack([
                 ft.Container(bgcolor=ft.Colors.with_opacity(0.8, ft.Colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
@@ -1233,7 +1233,7 @@ def crud_view(content, page=None):
             ]),
             expand=True,
         )
-        
+
         page.overlay.append(modal_overlay)
         page.update()
         monto_field.focus()
@@ -1271,11 +1271,11 @@ def crud_view(content, page=None):
     def crear_estado_caja():
         """Estado de caja con información detallada"""
         sesion_info = obtener_sesion_activa()
-        
+
         if sesion_info:
             sesion_actual["id"] = sesion_info[0]
             sesion_actual["monto_apertura"] = sesion_info[1]
-            
+
             return ft.Container(
                 content=ft.Row([
                     ft.Row([
@@ -1326,7 +1326,7 @@ def crud_view(content, page=None):
     def crear_columna_productos():
         """Columna izquierda - Catálogo de productos"""
         productos = obtener_productos()
-        
+
         search_field = ft.TextField(
             label="🔍 Buscar producto",
             prefix_icon=ft.Icons.SEARCH,
@@ -1335,11 +1335,11 @@ def crud_view(content, page=None):
             bgcolor=ft.Colors.WHITE,
         )
         productos_list = ft.Column([], spacing=8, scroll=ft.ScrollMode.AUTO)
-        
+
         def filtrar_productos(texto):
             productos_list.controls.clear()
             productos_filtrados = [p for p in productos if texto.lower() in p[1].lower()] if texto else productos
-            
+
             if not productos_filtrados:
                 productos_list.controls.append(
                     ft.Container(
@@ -1358,14 +1358,14 @@ def crud_view(content, page=None):
                             else:
                                 for producto in productos_filtrados:
                                     id_prod, nombre, categoria, precio, stock, unidad = producto
-                                    
+
                                     def crear_handler(prod_id, prod_nombre, prod_precio, prod_stock, prod_unidad):
                                         def handler(e):
                                             agregar_al_carrito(prod_id, prod_nombre, prod_precio, prod_stock, prod_unidad)
                                         return handler
-                                    
+
                                     stock_color = SUCCESS_COLOR if stock > 10 else WARNING_COLOR if stock > 0 else ERROR_COLOR
-                                    
+
                                     producto_card = ft.Container(
                                         content=ft.Row([
                                             ft.Column([
@@ -1395,12 +1395,12 @@ def crud_view(content, page=None):
                                         shadow=ft.BoxShadow(blur_radius=3, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
                                     )
                                     productos_list.controls.append(producto_card)
-                            
+
                             page.update()
-                        
+
                         search_field.on_change = lambda e: filtrar_productos(e.control.value)
                         filtrar_productos("")
-                        
+
                         return ft.Container(
                             content=ft.Column([
                                 ft.Row([
@@ -1423,9 +1423,9 @@ def crud_view(content, page=None):
                     def crear_columna_carrito():
                         """Columna central - Carrito de Venta"""
                         nonlocal actualizar_carrito_fn
-                        
+
                         carrito_list = ft.Column([], spacing=10, scroll=ft.ScrollMode.AUTO)
-                        
+
                         totales_container = ft.Container(
                             content=ft.Column([
                                 ft.Row([
@@ -1443,7 +1443,7 @@ def crud_view(content, page=None):
                             bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
                             border=ft.border.all(2, PRIMARY_COLOR),
                         )
-                        
+
                         pagar_button = ft.ElevatedButton(
                             content=ft.Row([
                                 ft.Icon(ft.Icons.PAYMENT, color="white", size=24),
@@ -1460,10 +1460,10 @@ def crud_view(content, page=None):
                                 elevation=8,
                             ),
                         )
-                        
+
                         def actualizar_carrito():
                             carrito_list.controls.clear()
-                            
+
                             if not carrito_venta:
                                 carrito_list.controls.append(
                                     ft.Container(
@@ -1488,7 +1488,7 @@ def crud_view(content, page=None):
                                         bgcolor=ft.Colors.WHITE,
                                         text_size=14,
                                     )
-                                    
+
                                     def crear_handler_cantidad(idx):
                                         def handler(e):
                                             try:
@@ -1502,16 +1502,16 @@ def crud_view(content, page=None):
                                             except ValueError:
                                                 actualizar_carrito()
                                         return handler
-                                    
+
                                     cantidad_field.on_change = crear_handler_cantidad(i)
-                                    
+
                                     def crear_handler_eliminar(idx):
                                         def handler(e):
                                             if idx < len(carrito_venta):
                                                 carrito_venta.pop(idx)
                                                 actualizar_carrito()
                                         return handler
-                                    
+
                                     item_card = ft.Container(
                                         content=ft.Column([
                                             ft.Row([
@@ -1531,8 +1531,8 @@ def crud_view(content, page=None):
                                                 ft.Text("Cantidad:", size=14, weight="bold"),
                                                 cantidad_field,
                                                 ft.Text("Total:", size=14, weight="bold", expand=True, text_align=ft.TextAlign.RIGHT),
-                                                ft.Text(formatear_guaranies(item['cantidad'] * item['precio']), 
-                                                       weight="bold", size=15, color=PRIMARY_COLOR),
+                                                ft.Text(formatear_guaranies(item['cantidad'] * item['precio']),
+                                                    weight="bold", size=15, color=PRIMARY_COLOR),
                                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                         ], spacing=8),
                                         padding=15,
@@ -1542,20 +1542,20 @@ def crud_view(content, page=None):
                                         shadow=ft.BoxShadow(blur_radius=3, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
                                     )
                                     carrito_list.controls.append(item_card)
-                            
+
                             # Actualizar totales
                             subtotal, descuento, total = calcular_totales()
                             totales_container.content.controls[0].controls[1].value = formatear_guaranies(subtotal)
                             totales_container.content.controls[2].controls[1].value = formatear_guaranies(total)
-                            
+
                             # Actualizar botón
                             pagar_button.disabled = not (carrito_venta and sesion_actual["id"])
                             pagar_button.bgcolor = SUCCESS_COLOR if not pagar_button.disabled else ft.Colors.GREY_400
-                            
+
                             page.update()
-                        
+
                         actualizar_carrito_fn = actualizar_carrito
-                        
+
                         return ft.Container(
                             content=ft.Column([
                                 ft.Row([
@@ -1579,14 +1579,14 @@ def crud_view(content, page=None):
                     def crear_columna_ventas():
                         """Columna derecha - Ventas del día"""
                         nonlocal actualizar_ventas_fn
-                        
+
                         ventas_list = ft.Column([], spacing=8, scroll=ft.ScrollMode.AUTO)
                         total_ventas_text = ft.Text("Total del día: ₲ 0", size=16, weight="bold", color=PRIMARY_COLOR)
-                        
+
                         def actualizar_ventas():
                             ventas_list.controls.clear()
                             ventas = obtener_ventas_del_dia()
-                            
+
                             if not ventas:
                                 ventas_list.controls.append(
                                     ft.Container(
@@ -1603,11 +1603,11 @@ def crud_view(content, page=None):
                             else:
                                 total_dia = sum(venta[1] for venta in ventas)
                                 total_ventas_text.value = f"Total del día: {formatear_guaranies(total_dia)}"
-                                
+
                                 for venta in ventas:
                                     numero, total, metodo, fecha, cliente, vendedor = venta
                                     fecha_corta = fecha.split(' ')[1][:5] if fecha and ' ' in str(fecha) else "N/A"
-                                    
+
                                     venta_card = ft.Container(
                                         content=ft.Column([
                                             ft.Row([
@@ -1632,12 +1632,12 @@ def crud_view(content, page=None):
                                         shadow=ft.BoxShadow(blur_radius=2, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
                                     )
                                     ventas_list.controls.append(venta_card)
-                            
+
                             page.update()
-                        
+
                         actualizar_ventas_fn = actualizar_ventas
                         actualizar_ventas()
-                        
+
                         return ft.Container(
                             content=ft.Column([
                                 ft.Row([
@@ -1660,17 +1660,17 @@ def crud_view(content, page=None):
                     # --- LAYOUT PRINCIPAL DE 3 COLUMNAS ---
                     header = crear_header()
                     estado_caja = crear_estado_caja()
-                    
+
                     # Contenido según estado de caja
                     if sesion_actual["id"]:
                         columna_productos = crear_columna_productos()
                         columna_carrito = crear_columna_carrito()
                         columna_ventas = crear_columna_ventas()
-                        
+
                         # Inicializar función de actualización del carrito
                         if actualizar_carrito_fn:
                             actualizar_carrito_fn()
-                        
+
                         # Layout de 3 columnas SIN scroll horizontal
                         contenido_principal = ft.Row([
                             columna_productos,      # Izquierda - Productos
@@ -1700,6 +1700,7 @@ def crud_view(content, page=None):
                         content.controls.append(layout_principal)
                     else:
                         content.content = layout_principal
-                    
+
                     page.update()
                     print("✅ Módulo de ventas PdV 3 COLUMNAS COMPLETO (PostgreSQL) cargado")
+

@@ -1,20 +1,18 @@
 import os
 import flet as ft
 
-# Detectar entorno de Render
-if os.environ.get("RENDER") or os.environ.get("RENDER_INTERNAL_HOSTNAME"):
-    DB_PATH = "/tmp/vivero.db"
-else:
-    DB_PATH = "data/vivero.db"
+DB_URL = os.environ.get("DATABASE_URL")
+if not DB_URL:
+    print("⚠️ No se encontró DATABASE_URL, usando SQLite local.")
+    DB_URL = "sqlite:///data/vivero.db"
 
-print(f"🔍 Usando base de datos en: {DB_PATH}")
+print(f"🔗 Conectando a la base: {DB_URL}")
 
-# --- Migraciones automáticas ---
 try:
     from modules.migrations import ensure_schema
-    ensure_schema(DB_PATH)
-except Exception as _e:
-    print("🚨 Aviso: no se pudo ejecutar migraciones:", _e)
+    ensure_schema(DB_URL)
+except Exception as e:
+    print("🚨 Error al ejecutar migraciones:", e)
 
 from modules import auth
 
@@ -24,7 +22,6 @@ def main(page: ft.Page):
     page.window_maximized = True
     page.padding = 0
     page.spacing = 0
-
     main_content = ft.Column(expand=True)
     page.add(main_content)
     auth.login_view(main_content, page=page)

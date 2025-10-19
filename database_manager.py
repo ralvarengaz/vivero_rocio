@@ -1,47 +1,60 @@
-import sqlite3
-import time
-import threading
+import os
+import psycopg2
+from psycopg2 import pool
 from contextlib import contextmanager
+import threading
+import time
 
-DB = "data/vivero.db"
+# ------------------------------------------------------------
+# Configuración base de datos PostgreSQL en Render
+# ------------------------------------------------------------
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# Lock global para evitar accesos concurrentes
+if not DATABASE_URL:
+    raise RuntimeError(
+        "❌ No se encontró la variable DATABASE_URL. "
+        "Configúrala en Render → Environment → DATABASE_URL"
+    )
+
+# Crear un pool de conexiones reutilizables
+try:
+    db_pool = psycopg2.pool.SimpleConnectionPool(
+        1,               # mínimo de conexiones
+        10,              # máximo de conexiones
+        DATABASE_URL,
+        connect_timeout=10
+    )
+    print("✅ Pool de conexiones PostgreSQL inicializado correctamente.")
+except Exception as e:
+    print(f"🚨 Error inicializando pool de PostgreSQL: {e}")
+    raise
+
+# Lock global para acceso concurrente seguro
 db_lock = threading.Lock()
 
+# ------------------------------------------------------------
+# Context manager para obtener y liberar conexiones
+# ------------------------------------------------------------
 @contextmanager
-def get_db_connection(timeout=30):
-    """Context manager para manejo seguro de conexiones SQLite"""
+def get_db_connection():
+    """Devuelve una conexión PostgreSQL desde el pool de manera segura"""
     conn = None
     try:
-        # Usar lock para evitar accesos concurrentes
         with db_lock:
-            conn = sqlite3.connect(DB, timeout=timeout)
-            conn.execute("PRAGMA journal_mode=WAL")  # Permite lecturas concurrentes
-            conn.execute("PRAGMA synchronous=NORMAL")  # Balance entre velocidad y seguridad
-            conn.execute("PRAGMA temp_store=MEMORY")  # Usar memoria para operaciones temporales
-            conn.execute("PRAGMA cache_size=10000")  # Cache más grande
-            yield conn
-    except sqlite3.OperationalError as e:
-        if "database is locked" in str(e):
-            print(f"⚠️ Base de datos bloqueada, reintentando en 1 segundo...")
-            time.sleep(1)
-            # Reintentar una vez
-            try:
-                conn = sqlite3.connect(DB, timeout=timeout)
-                conn.execute("PRAGMA journal_mode=WAL")
-                yield conn
-            except Exception as retry_error:
-                print(f"❌ Error después del reintento: {retry_error}")
-                raise retry_error
-        else:
-            print(f"❌ Error de base de datos: {e}")
-            raise e
+            conn = db_pool.getconn()
+        yield conn
+    except psycopg2.OperationalError as e:
+        print(f"⚠️ Error operacional de base de datos: {e}")
+        time.sleep(1)
+        with db_lock:
+            conn = db_pool.getconn()
+        yield conn
     except Exception as e:
-        print(f"❌ Error inesperado con la base de datos: {e}")
+        print(f"❌ Error inesperado con PostgreSQL: {e}")
         raise e
     finally:
         if conn:
             try:
-                conn.close()
+                db_pool.putconn(conn)
             except Exception as close_error:
-                print(f"⚠️ Error cerrando conexión: {close_error}")
+                print(f"⚠️ Error devolviendo conexión al pool: {close_error}")

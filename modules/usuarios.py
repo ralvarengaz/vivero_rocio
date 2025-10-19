@@ -1,10 +1,9 @@
 import flet as ft
-import sqlite3
 import hashlib
 from modules import dashboard
+from modules.database_manager import get_db_connection
 from datetime import datetime
 
-DB = "data/vivero.db"
 PRIMARY_COLOR = "#2E7D32"
 ACCENT_COLOR = "#66BB6A"
 
@@ -17,7 +16,7 @@ def crud_view(content, page=None):
 
     # --- Variables de estado ---
     selected_id = {"id": None}
-    usuario_actual = "ralvarengazz"  # Usuario logueado (en producción vendría de sesión)
+    usuario_actual = "ralvarengaz"  # Usuario logueado (en producción vendría de sesión)
 
     # --- Campos del formulario ---
     username = ft.TextField(label="Nombre de Usuario", width=200, hint_text="usuario123", prefix_icon=ft.Icons.PERSON)
@@ -174,106 +173,118 @@ def crud_view(content, page=None):
     # --- Funciones CRUD ---
     def refrescar_tabla(e=None):
         tabla.rows.clear()
-        conn = sqlite3.connect(DB)
-        cur = conn.cursor()
         
-        query = """SELECT id, username, nombre_completo, email, rol, estado, ultimo_acceso
-                   FROM usuarios WHERE 1=1"""
-        params = []
+        try:
+            with get_db_connection() as conn:
+                cur = conn.cursor()
+                
+                query = """SELECT id, username, nombre_completo, email, rol, estado, ultimo_acceso
+                           FROM usuarios WHERE 1=1"""
+                params = []
+                
+                if filtro_username.value.strip():
+                    query += " AND LOWER(username) LIKE %s"
+                    params.append(f"%{filtro_username.value.strip().lower()}%")
+                
+                if filtro_rol.value:
+                    query += " AND rol = %s"
+                    params.append(filtro_rol.value)
+                
+                query += " ORDER BY fecha_creacion DESC"
+                
+                cur.execute(query, params)
+                usuarios = cur.fetchall()
+                
+                for usuario in usuarios:
+                    uid, uname, nombre, email_u, rol_u, estado_u, ultimo_acceso = usuario
+                    
+                    # Contenedor de estado con color
+                    estado_color = "#4CAF50" if estado_u == "Activo" else "#F44336"
+                    estado_container = ft.Container(
+                        content=ft.Text(estado_u, color="white", weight="bold", size=12),
+                        bgcolor=estado_color,
+                        padding=ft.padding.symmetric(vertical=4, horizontal=8),
+                        border_radius=8
+                    )
+                    
+                    # Contenedor de rol con color
+                    rol_colors = {
+                        "Administrador": "#D32F2F",
+                        "Gerente": "#1976D2", 
+                        "Vendedor": "#388E3C",
+                        "Usuario": "#757575"
+                    }
+                    rol_container = ft.Container(
+                        content=ft.Text(rol_u, color="white", weight="bold", size=12),
+                        bgcolor=rol_colors.get(rol_u, "#757575"),
+                        padding=ft.padding.symmetric(vertical=4, horizontal=8),
+                        border_radius=8
+                    )
+                    
+                    ultimo_acceso_str = str(ultimo_acceso) if ultimo_acceso else "Nunca"
+                    
+                    tabla.rows.append(ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(str(uid))),
+                            ft.DataCell(ft.Text(uname)),
+                            ft.DataCell(ft.Text(nombre)),
+                            ft.DataCell(ft.Text(email_u or "")),
+                            ft.DataCell(rol_container),
+                            ft.DataCell(estado_container),
+                            ft.DataCell(ft.Text(ultimo_acceso_str)),
+                        ],
+                        on_select_changed=lambda e, uid=uid: seleccionar(uid),
+                    ))
+                
+        except Exception as ex:
+            print(f"Error refrescando tabla: {ex}")
+            show_snackbar(f"Error cargando usuarios: {str(ex)}", "#F44336")
         
-        if filtro_username.value.strip():
-            query += " AND LOWER(username) LIKE ?"
-            params.append(f"%{filtro_username.value.strip().lower()}%")
-        
-        if filtro_rol.value:
-            query += " AND rol = ?"
-            params.append(filtro_rol.value)
-        
-        query += " ORDER BY fecha_creacion DESC"
-        
-        cur.execute(query, params)
-        usuarios = cur.fetchall()
-        conn.close()
-        
-        for usuario in usuarios:
-            uid, uname, nombre, email_u, rol_u, estado_u, ultimo_acceso = usuario
-            
-            # Contenedor de estado con color
-            estado_color = "#4CAF50" if estado_u == "Activo" else "#F44336"
-            estado_container = ft.Container(
-                content=ft.Text(estado_u, color="white", weight="bold", size=12),
-                bgcolor=estado_color,
-                padding=ft.padding.symmetric(vertical=4, horizontal=8),
-                border_radius=8
-            )
-            
-            # Contenedor de rol con color
-            rol_colors = {
-                "Administrador": "#D32F2F",
-                "Gerente": "#1976D2", 
-                "Vendedor": "#388E3C",
-                "Usuario": "#757575"
-            }
-            rol_container = ft.Container(
-                content=ft.Text(rol_u, color="white", weight="bold", size=12),
-                bgcolor=rol_colors.get(rol_u, "#757575"),
-                padding=ft.padding.symmetric(vertical=4, horizontal=8),
-                border_radius=8
-            )
-            
-            tabla.rows.append(ft.DataRow(
-                cells=[
-                    ft.DataCell(ft.Text(str(uid))),
-                    ft.DataCell(ft.Text(uname)),
-                    ft.DataCell(ft.Text(nombre)),
-                    ft.DataCell(ft.Text(email_u or "")),
-                    ft.DataCell(rol_container),
-                    ft.DataCell(estado_container),
-                    ft.DataCell(ft.Text(ultimo_acceso or "Nunca")),
-                ],
-                on_select_changed=lambda e, uid=uid: seleccionar(uid),
-            ))
         page.update()
 
     def seleccionar(uid):
-        conn = sqlite3.connect(DB)
-        cur = conn.cursor()
+        try:
+            with get_db_connection() as conn:
+                cur = conn.cursor()
+                
+                # Obtener datos del usuario
+                cur.execute("SELECT * FROM usuarios WHERE id=%s", (uid,))
+                usuario = cur.fetchone()
+                
+                if usuario:
+                    selected_id["id"] = usuario[0]
+                    username.value = usuario[1]
+                    password.value = ""  # No mostrar contraseña
+                    nombre_completo.value = usuario[3]
+                    email.value = usuario[4] or ""
+                    telefono.value = usuario[5] or ""
+                    rol.value = usuario[6]
+                    estado.value = usuario[7]
+                    
+                    # Cargar permisos
+                    cur.execute("SELECT modulo, puede_ver, puede_crear, puede_editar, puede_eliminar FROM permisos_usuario WHERE usuario_id=%s", (uid,))
+                    permisos = cur.fetchall()
+                    
+                    # Limpiar permisos primero
+                    for modulo in modulos:
+                        for accion in permisos_checkboxes[modulo]:
+                            permisos_checkboxes[modulo][accion].value = False
+                    
+                    # Aplicar permisos guardados
+                    for permiso in permisos:
+                        modulo, ver, crear, editar, eliminar = permiso
+                        if modulo in permisos_checkboxes:
+                            permisos_checkboxes[modulo]['ver'].value = bool(ver)
+                            permisos_checkboxes[modulo]['crear'].value = bool(crear)
+                            permisos_checkboxes[modulo]['editar'].value = bool(editar)
+                            permisos_checkboxes[modulo]['eliminar'].value = bool(eliminar)
+                    
+                    error_msg.value = ""
         
-        # Obtener datos del usuario
-        cur.execute("SELECT * FROM usuarios WHERE id=?", (uid,))
-        usuario = cur.fetchone()
+        except Exception as ex:
+            print(f"Error seleccionando usuario: {ex}")
+            show_snackbar(f"Error: {str(ex)}", "#F44336")
         
-        if usuario:
-            selected_id["id"] = usuario[0]
-            username.value = usuario[1]
-            password.value = ""  # No mostrar contraseña
-            nombre_completo.value = usuario[3]
-            email.value = usuario[4] or ""
-            telefono.value = usuario[5] or ""
-            rol.value = usuario[6]
-            estado.value = usuario[7]
-            
-            # Cargar permisos
-            cur.execute("SELECT modulo, puede_ver, puede_crear, puede_editar, puede_eliminar FROM permisos_usuario WHERE usuario_id=?", (uid,))
-            permisos = cur.fetchall()
-            
-            # Limpiar permisos primero
-            for modulo in modulos:
-                for accion in permisos_checkboxes[modulo]:
-                    permisos_checkboxes[modulo][accion].value = False
-            
-            # Aplicar permisos guardados
-            for permiso in permisos:
-                modulo, ver, crear, editar, eliminar = permiso
-                if modulo in permisos_checkboxes:
-                    permisos_checkboxes[modulo]['ver'].value = bool(ver)
-                    permisos_checkboxes[modulo]['crear'].value = bool(crear)
-                    permisos_checkboxes[modulo]['editar'].value = bool(editar)
-                    permisos_checkboxes[modulo]['eliminar'].value = bool(eliminar)
-            
-            error_msg.value = ""
-        
-        conn.close()
         page.update()
 
     def agregar_usuario(e):
@@ -284,45 +295,46 @@ def crud_view(content, page=None):
             return
         
         try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            
-            # Verificar si el username ya existe
-            cur.execute("SELECT id FROM usuarios WHERE username=?", (username.value.strip(),))
-            if cur.fetchone():
-                show_snackbar("El nombre de usuario ya existe", "#FFA000")
-                conn.close()
-                return
-            
-            # Insertar usuario
-            password_hash = hashear_password(password.value.strip())
-            cur.execute("""
-                INSERT INTO usuarios (username, password, nombre_completo, email, telefono, rol, estado, creado_por)
-                VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT id FROM usuarios WHERE username=? LIMIT 1))
-            """, (username.value.strip(), password_hash, nombre_completo.value.strip(), 
-                  email.value.strip() or None, telefono.value.strip() or None, 
-                  rol.value, estado.value, usuario_actual))
-            
-            usuario_id = cur.lastrowid
-            
-            # Insertar permisos
-            for modulo in modulos:
-                permisos = permisos_checkboxes[modulo]
+            with get_db_connection() as conn:
+                cur = conn.cursor()
+                
+                # Verificar si el username ya existe
+                cur.execute("SELECT id FROM usuarios WHERE username=%s", (username.value.strip(),))
+                if cur.fetchone():
+                    show_snackbar("El nombre de usuario ya existe", "#FFA000")
+                    return
+                
+                # Insertar usuario
+                password_hash = hashear_password(password.value.strip())
                 cur.execute("""
-                    INSERT INTO permisos_usuario (usuario_id, modulo, puede_ver, puede_crear, puede_editar, puede_eliminar)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (usuario_id, modulo, 
-                      permisos['ver'].value, permisos['crear'].value, 
-                      permisos['editar'].value, permisos['eliminar'].value))
-            
-            conn.commit()
-            conn.close()
-            
-            limpiar_form()
-            refrescar_tabla()
-            show_snackbar("Usuario creado correctamente", PRIMARY_COLOR)
-            
+                    INSERT INTO usuarios (username, usuario, password, nombre_completo, email, telefono, rol, estado, creado_por)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, (SELECT id FROM usuarios WHERE username=%s LIMIT 1))
+                """, (username.value.strip(), username.value.strip(), password_hash, nombre_completo.value.strip(), 
+                      email.value.strip() or None, telefono.value.strip() or None, 
+                      rol.value, estado.value, usuario_actual))
+                
+                # Obtener ID del usuario recién creado
+                cur.execute("SELECT id FROM usuarios WHERE username=%s", (username.value.strip(),))
+                usuario_id = cur.fetchone()[0]
+                
+                # Insertar permisos
+                for modulo in modulos:
+                    permisos = permisos_checkboxes[modulo]
+                    cur.execute("""
+                        INSERT INTO permisos_usuario (usuario_id, modulo, puede_ver, puede_crear, puede_editar, puede_eliminar)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (usuario_id, modulo, 
+                          permisos['ver'].value, permisos['crear'].value, 
+                          permisos['editar'].value, permisos['eliminar'].value))
+                
+                conn.commit()
+                
+                limpiar_form()
+                refrescar_tabla()
+                show_snackbar("Usuario creado correctamente", PRIMARY_COLOR)
+                
         except Exception as ex:
+            print(f"Error creando usuario: {ex}")
             show_snackbar(f"Error al crear usuario: {str(ex)}", "#F44336")
 
     def editar_usuario(e):
@@ -339,52 +351,51 @@ def crud_view(content, page=None):
             return
         
         try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            
-            # Verificar username único (excluyendo el usuario actual)
-            cur.execute("SELECT id FROM usuarios WHERE username=? AND id!=?", (username.value.strip(), selected_id["id"]))
-            if cur.fetchone():
-                show_snackbar("El nombre de usuario ya existe", "#FFA000")
-                conn.close()
-                return
-            
-            # Actualizar usuario
-            if password.value.strip():
-                password_hash = hashear_password(password.value.strip())
-                cur.execute("""
-                    UPDATE usuarios SET username=?, password=?, nombre_completo=?, email=?, telefono=?, rol=?, estado=?
-                    WHERE id=?
-                """, (username.value.strip(), password_hash, nombre_completo.value.strip(),
-                      email.value.strip() or None, telefono.value.strip() or None,
-                      rol.value, estado.value, selected_id["id"]))
-            else:
-                cur.execute("""
-                    UPDATE usuarios SET username=?, nombre_completo=?, email=?, telefono=?, rol=?, estado=?
-                    WHERE id=?
-                """, (username.value.strip(), nombre_completo.value.strip(),
-                      email.value.strip() or None, telefono.value.strip() or None,
-                      rol.value, estado.value, selected_id["id"]))
-            
-            # Actualizar permisos
-            cur.execute("DELETE FROM permisos_usuario WHERE usuario_id=?", (selected_id["id"],))
-            for modulo in modulos:
-                permisos = permisos_checkboxes[modulo]
-                cur.execute("""
-                    INSERT INTO permisos_usuario (usuario_id, modulo, puede_ver, puede_crear, puede_editar, puede_eliminar)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (selected_id["id"], modulo,
-                      permisos['ver'].value, permisos['crear'].value,
-                      permisos['editar'].value, permisos['eliminar'].value))
-            
-            conn.commit()
-            conn.close()
-            
-            limpiar_form()
-            refrescar_tabla()
-            show_snackbar("Usuario editado correctamente", "#0288D1")
-            
+            with get_db_connection() as conn:
+                cur = conn.cursor()
+                
+                # Verificar username único (excluyendo el usuario actual)
+                cur.execute("SELECT id FROM usuarios WHERE username=%s AND id!=%s", (username.value.strip(), selected_id["id"]))
+                if cur.fetchone():
+                    show_snackbar("El nombre de usuario ya existe", "#FFA000")
+                    return
+                
+                # Actualizar usuario
+                if password.value.strip():
+                    password_hash = hashear_password(password.value.strip())
+                    cur.execute("""
+                        UPDATE usuarios SET username=%s, usuario=%s, password=%s, nombre_completo=%s, email=%s, telefono=%s, rol=%s, estado=%s
+                        WHERE id=%s
+                    """, (username.value.strip(), username.value.strip(), password_hash, nombre_completo.value.strip(),
+                          email.value.strip() or None, telefono.value.strip() or None,
+                          rol.value, estado.value, selected_id["id"]))
+                else:
+                    cur.execute("""
+                        UPDATE usuarios SET username=%s, usuario=%s, nombre_completo=%s, email=%s, telefono=%s, rol=%s, estado=%s
+                        WHERE id=%s
+                    """, (username.value.strip(), username.value.strip(), nombre_completo.value.strip(),
+                          email.value.strip() or None, telefono.value.strip() or None,
+                          rol.value, estado.value, selected_id["id"]))
+                
+                # Actualizar permisos
+                cur.execute("DELETE FROM permisos_usuario WHERE usuario_id=%s", (selected_id["id"],))
+                for modulo in modulos:
+                    permisos = permisos_checkboxes[modulo]
+                    cur.execute("""
+                        INSERT INTO permisos_usuario (usuario_id, modulo, puede_ver, puede_crear, puede_editar, puede_eliminar)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (selected_id["id"], modulo,
+                          permisos['ver'].value, permisos['crear'].value,
+                          permisos['editar'].value, permisos['eliminar'].value))
+                
+                conn.commit()
+                
+                limpiar_form()
+                refrescar_tabla()
+                show_snackbar("Usuario editado correctamente", "#0288D1")
+                
         except Exception as ex:
+            print(f"Error editando usuario: {ex}")
             show_snackbar(f"Error al editar usuario: {str(ex)}", "#F44336")
 
     def eliminar_usuario(e):
@@ -399,22 +410,20 @@ def crud_view(content, page=None):
         def confirmar_eliminacion(respuesta):
             if respuesta:
                 try:
-                    conn = sqlite3.connect(DB)
-                    cur = conn.cursor()
-                    
-                    # Eliminar permisos primero
-                    cur.execute("DELETE FROM permisos_usuario WHERE usuario_id=?", (selected_id["id"],))
-                    # Eliminar usuario
-                    cur.execute("DELETE FROM usuarios WHERE id=?", (selected_id["id"],))
-                    
-                    conn.commit()
-                    conn.close()
-                    
-                    limpiar_form()
-                    refrescar_tabla()
-                    show_snackbar("Usuario eliminado correctamente", "#C62828")
-                    
+                    with get_db_connection() as conn:
+                        cur = conn.cursor()
+                        
+                        # PostgreSQL eliminará permisos automáticamente (ON DELETE CASCADE)
+                        cur.execute("DELETE FROM usuarios WHERE id=%s", (selected_id["id"],))
+                        
+                        conn.commit()
+                        
+                        limpiar_form()
+                        refrescar_tabla()
+                        show_snackbar("Usuario eliminado correctamente", "#C62828")
+                        
                 except Exception as ex:
+                    print(f"Error eliminando usuario: {ex}")
                     show_snackbar(f"Error al eliminar usuario: {str(ex)}", "#F44336")
             
             page.dialog = None

@@ -383,7 +383,7 @@ def dashboard_view(content, page=None):
         ], spacing=5),
         padding=15,
         border_radius=10,
-        bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+        bgcolor=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
         border=ft.border.all(1, PRIMARY_COLOR),
     )
 

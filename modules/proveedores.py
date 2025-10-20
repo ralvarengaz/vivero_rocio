@@ -15,11 +15,11 @@ def crud_view(content, page=None):
         page.open(ft.SnackBar(content=ft.Text(msg, color="white"), bgcolor=color, duration=3000))
 
     # --- Campos del formulario ---
-    nombre = ft.TextField(label="Nombre", width=300, hint_text="Ej: Vivero Central", prefix_icon=ft.Icons.PERSON)
-    telefono = ft.TextField(label="Teléfono", width=220, hint_text="Ej: 0981123456", prefix_icon=ft.Icons.PHONE)
-    correo = ft.TextField(label="Correo", width=300, hint_text="Ej: proveedor@email.com", prefix_icon=ft.Icons.EMAIL)
-    direccion = ft.TextField(label="Dirección", width=300, hint_text="Ej: Calle Falsa 123", prefix_icon=ft.Icons.HOME)
-    ruc = ft.TextField(label="RUC", width=300, hint_text="Ej: 1234567-8", prefix_icon=ft.Icons.BADGE)
+    nombre = ft.TextField(label="Nombre", width=300, hint_text="Ej: Vivero Central", prefix_icon=ft.icons.PERSON)
+    telefono = ft.TextField(label="Teléfono", width=220, hint_text="Ej: 0981123456", prefix_icon=ft.icons.PHONE)
+    correo = ft.TextField(label="Correo", width=300, hint_text="Ej: proveedor@email.com", prefix_icon=ft.icons.EMAIL)
+    direccion = ft.TextField(label="Dirección", width=300, hint_text="Ej: Calle Falsa 123", prefix_icon=ft.icons.HOME)
+    ruc = ft.TextField(label="RUC", width=300, hint_text="Ej: 1234567-8", prefix_icon=ft.icons.BADGE)
 
     error_msg = ft.Text("", color="red")
 
@@ -48,7 +48,7 @@ def crud_view(content, page=None):
         [
             telefono,
             ft.IconButton(
-                icon=ft.Icons.CHAT,
+                icon=ft.icons.CHAT,
                 icon_color="#25D366",
                 tooltip="Contactar por WhatsApp",
                 on_click=abrir_whatsapp_form,
@@ -59,8 +59,8 @@ def crud_view(content, page=None):
     )
 
     # --- Filtros ---
-    filtro_nombre = ft.TextField(label="Buscar por Nombre", width=200, prefix_icon=ft.Icons.SEARCH, on_change=lambda e: refrescar_tabla())
-    filtro_ruc = ft.TextField(label="Buscar por RUC", width=200, prefix_icon=ft.Icons.SEARCH, on_change=lambda e: refrescar_tabla())
+    filtro_nombre = ft.TextField(label="Buscar por Nombre", width=200, prefix_icon=ft.icons.SEARCH, on_change=lambda e: refrescar_tabla())
+    filtro_ruc = ft.TextField(label="Buscar por RUC", width=200, prefix_icon=ft.icons.SEARCH, on_change=lambda e: refrescar_tabla())
 
     # ---------------- FUNCIONES ----------------
     def validar_campos():
@@ -137,7 +137,7 @@ def crud_view(content, page=None):
                         ft.DataCell(ft.Text(p_tel or "", text_align="center")),
                         ft.DataCell(
                             ft.IconButton(
-                                icon=ft.Icons.CHAT,
+                                icon=ft.icons.CHAT,
                                 icon_color="#25D366",
                                 tooltip=f"Contactar a {p_nombre or 'proveedor'}",
                                 on_click=lambda e, num=p_tel, nom=p_nombre: abrir_whatsapp_numero(num, nom),
@@ -225,17 +225,17 @@ def crud_view(content, page=None):
 
     botones = ft.Row(
         [
-            ft.ElevatedButton("Agregar", on_click=agregar_proveedor, bgcolor=PRIMARY_COLOR, color="white", icon=ft.Icons.ADD),
-            ft.ElevatedButton("Editar", on_click=editar_proveedor, bgcolor="#0288D1", color="white", icon=ft.Icons.EDIT),
-            ft.ElevatedButton("Eliminar", on_click=eliminar_proveedor, bgcolor="#C62828", color="white", icon=ft.Icons.DELETE),
-            ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.Icons.CLEAR),
+            ft.ElevatedButton("Agregar", on_click=agregar_proveedor, bgcolor=PRIMARY_COLOR, color="white", icon=ft.icons.ADD),
+            ft.ElevatedButton("Editar", on_click=editar_proveedor, bgcolor="#0288D1", color="white", icon=ft.icons.EDIT),
+            ft.ElevatedButton("Eliminar", on_click=eliminar_proveedor, bgcolor="#C62828", color="white", icon=ft.icons.DELETE),
+            ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.icons.CLEAR),
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         spacing=10,
     )
 
     volver_icon = ft.IconButton(
-        icon=ft.Icons.ARROW_BACK,
+        icon=ft.icons.ARROW_BACK,
         tooltip="Volver al Dashboard",
         icon_color=PRIMARY_COLOR,
         on_click=lambda e: dashboard.dashboard_view(content, page=page),

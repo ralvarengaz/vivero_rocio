@@ -29,7 +29,7 @@ def crud_view(content, page=None):
     filtro_fecha_ini = ft.TextField(
         label="Desde", 
         width=140, 
-        prefix_icon=ft.Icons.DATE_RANGE,
+        prefix_icon=ft.icons.DATE_RANGE,
         value=fecha_inicio_mes,
         on_change=lambda e: refrescar_tabla_auto(),
     )
@@ -37,7 +37,7 @@ def crud_view(content, page=None):
     filtro_fecha_fin = ft.TextField(
         label="Hasta", 
         width=140, 
-        prefix_icon=ft.Icons.DATE_RANGE,
+        prefix_icon=ft.icons.DATE_RANGE,
         value=fecha_actual,
         on_change=lambda e: refrescar_tabla_auto(),
     )
@@ -80,14 +80,14 @@ def crud_view(content, page=None):
 
     # --- Botones de calendario ---
     btn_calendario_ini = ft.IconButton(
-        icon=ft.Icons.CALENDAR_TODAY,
+        icon=ft.icons.CALENDAR_TODAY,
         icon_color=PRIMARY_COLOR,
         tooltip="Seleccionar fecha inicial",
         on_click=abrir_calendario_ini,
     )
     
     btn_calendario_fin = ft.IconButton(
-        icon=ft.Icons.CALENDAR_TODAY,
+        icon=ft.icons.CALENDAR_TODAY,
         icon_color=PRIMARY_COLOR,
         tooltip="Seleccionar fecha final",
         on_click=abrir_calendario_fin,
@@ -117,7 +117,7 @@ def crud_view(content, page=None):
     filtro_adicional = ft.TextField(
         label="Buscar específico",
         width=200,
-        prefix_icon=ft.Icons.SEARCH,
+        prefix_icon=ft.icons.SEARCH,
         hint_text="Nombre de cliente o producto",
         on_change=lambda e: refrescar_tabla_auto()
     )
@@ -365,7 +365,7 @@ def crud_view(content, page=None):
                         ft.DataCell(ft.Text(f"₲ {v[2]:,.0f}")),
                         ft.DataCell(ft.Text(v[3])),
                         ft.DataCell(ft.IconButton(
-                            icon=ft.Icons.VISIBILITY,
+                            icon=ft.icons.VISIBILITY,
                             icon_color="#0288D1",
                             tooltip="Ver detalle de venta",
                             on_click=lambda e, vid=v[0]: abrir_detalle_ventas(vid)
@@ -421,7 +421,7 @@ def crud_view(content, page=None):
                         ft.DataCell(ft.Text(p[4])),
                         ft.DataCell(ft.Text(f"₲ {p[5]:,.0f}")),
                         ft.DataCell(ft.IconButton(
-                            icon=ft.Icons.CHAT,
+                            icon=ft.icons.CHAT,
                             icon_color="#25D366",
                             tooltip="Contactar por WhatsApp",
                             on_click=lambda e, tel=p[6], nom=p[1]: contactar_cliente_whatsapp(tel, nom)
@@ -467,7 +467,7 @@ def crud_view(content, page=None):
                         ft.DataCell(ft.Text(c[3] or "")),
                         ft.DataCell(ft.Text(f"₲ {c[5]:,.0f}")),
                         ft.DataCell(ft.IconButton(
-                            icon=ft.Icons.CHAT,
+                            icon=ft.icons.CHAT,
                             icon_color="#25D366",
                             tooltip="Contactar por WhatsApp",
                             on_click=lambda e, tel=c[4], nom=c[1]: contactar_cliente_whatsapp(tel, nom)
@@ -651,7 +651,7 @@ def crud_view(content, page=None):
                         ft.DataCell(ft.Text(f"₲ {cliente[3]:,.0f}")),
                         ft.DataCell(ft.Text(cliente[4] or "")),
                         ft.DataCell(ft.IconButton(
-                            icon=ft.Icons.CHAT,
+                            icon=ft.icons.CHAT,
                             icon_color="#25D366",
                             tooltip="Contactar por WhatsApp",
                             on_click=lambda e, tel=cliente[1], nom=cliente[0]: contactar_cliente_whatsapp(tel, nom)
@@ -744,7 +744,7 @@ def crud_view(content, page=None):
     )
 
     volver_icon = ft.IconButton(
-        icon=ft.Icons.ARROW_BACK,
+        icon=ft.icons.ARROW_BACK,
         tooltip="Volver al Dashboard",
         icon_color=PRIMARY_COLOR,
         on_click=lambda e: dashboard.dashboard_view(content, page=page),

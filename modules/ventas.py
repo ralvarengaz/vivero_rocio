@@ -641,7 +641,7 @@ def crud_view(content, page=None):
                 ft.Row([
                     ft.Text("🧾 Ticket de Venta", size=22, weight="bold", expand=True, color=PRIMARY_COLOR),
                     ft.IconButton(
-                        icon=ft.Icons.CLOSE,
+                        icon=ft.icons.CLOSE,
                         on_click=lambda e: cerrar_ticket(),
                         tooltip="Cerrar ticket",
                         icon_color=ERROR_COLOR,
@@ -666,7 +666,7 @@ def crud_view(content, page=None):
                 ft.Row([
                     ft.ElevatedButton(
                         content=ft.Row([
-                            ft.Icon(ft.Icons.PICTURE_AS_PDF, size=20),
+                            ft.Icon(ft.icons.PICTURE_AS_PDF, size=20),
                             ft.Text("GENERAR PDF", size=15, weight="bold"),
                         ], spacing=6),
                         bgcolor=PRIMARY_COLOR,
@@ -679,7 +679,7 @@ def crud_view(content, page=None):
                     ),
                     ft.ElevatedButton(
                         content=ft.Row([
-                            ft.Icon(ft.Icons.CHECK_CIRCLE, size=20),
+                            ft.Icon(ft.icons.CHECK_CIRCLE, size=20),
                             ft.Text("FINALIZAR", size=15, weight="bold"),
                         ], spacing=6),
                         bgcolor=SUCCESS_COLOR,
@@ -797,7 +797,7 @@ def crud_view(content, page=None):
         modal_content = ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Icon(ft.Icons.LOCK_OPEN, size=32, color=SUCCESS_COLOR),
+                    ft.Icon(ft.icons.LOCK_OPEN, size=32, color=SUCCESS_COLOR),
                     ft.Text("Abrir Caja", size=22, weight="bold", color=SUCCESS_COLOR),
                 ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
 
@@ -923,7 +923,7 @@ def crud_view(content, page=None):
         modal_content = ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Icon(ft.Icons.LOCK, size=32, color=WARNING_COLOR),
+                    ft.Icon(ft.icons.LOCK, size=32, color=WARNING_COLOR),
                     ft.Text("Cerrar Caja", size=22, weight="bold", color=WARNING_COLOR),
                 ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
 
@@ -1156,7 +1156,7 @@ def crud_view(content, page=None):
         modal_content = ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Icon(ft.Icons.PAYMENT, size=32, color=PRIMARY_COLOR),
+                    ft.Icon(ft.icons.PAYMENT, size=32, color=PRIMARY_COLOR),
                     ft.Text("Procesar Pago", size=24, weight="bold", color=PRIMARY_COLOR),
                 ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
 
@@ -1197,14 +1197,14 @@ def crud_view(content, page=None):
                 ft.Row([
                     ft.TextButton(
                         content=ft.Row([
-                            ft.Icon(ft.Icons.CANCEL, size=16),
+                            ft.Icon(ft.icons.CANCEL, size=16),
                             ft.Text("Cancelar", size=14),
                         ], spacing=4),
                         on_click=lambda e: cerrar_overlay(),
                     ),
                     ft.ElevatedButton(
                         content=ft.Row([
-                            ft.Icon(ft.Icons.PAYMENT, size=18),
+                            ft.Icon(ft.icons.PAYMENT, size=18),
                             ft.Text("CONFIRMAR PAGO", size=16, weight="bold"),
                         ], spacing=6),
                         bgcolor=SUCCESS_COLOR,
@@ -1244,7 +1244,7 @@ def crud_view(content, page=None):
         return ft.Container(
             content=ft.Row([
                 ft.IconButton(
-                    icon=ft.Icons.ARROW_BACK,
+                    icon=ft.icons.ARROW_BACK,
                     icon_color=PRIMARY_COLOR,
                     icon_size=28,
                     tooltip="Volver al Dashboard",
@@ -1253,7 +1253,7 @@ def crud_view(content, page=None):
                     style=ft.ButtonStyle(shape=ft.CircleBorder()),
                 ),
                 ft.Row([
-                    ft.Icon(ft.Icons.POINT_OF_SALE, size=28, color=PRIMARY_COLOR),
+                    ft.Icon(ft.icons.POINT_OF_SALE, size=28, color=PRIMARY_COLOR),
                     ft.Text("Sistema de Ventas - PdV", size=24, weight="bold", color=PRIMARY_COLOR),
                 ], spacing=8),
                 ft.Container(expand=True),
@@ -1279,7 +1279,7 @@ def crud_view(content, page=None):
             return ft.Container(
                 content=ft.Row([
                     ft.Row([
-                        ft.Icon(ft.Icons.CIRCLE, size=16, color=SUCCESS_COLOR),
+                        ft.Icon(ft.icons.CIRCLE, size=16, color=SUCCESS_COLOR),
                         ft.Text("Caja Abierta", size=16, weight="bold", color=SUCCESS_COLOR),
                         ft.Text(f"- Apertura: {formatear_guaranies(sesion_info[1])}", size=14),
                         ft.Text(f"- {sesion_info[3]}", size=12, color=ft.Colors.GREY_600),
@@ -1287,7 +1287,7 @@ def crud_view(content, page=None):
                     ft.Container(expand=True),
                     ft.ElevatedButton(
                         "Cerrar Caja",
-                        icon=ft.Icons.LOCK,
+                        icon=ft.icons.LOCK,
                         bgcolor=WARNING_COLOR,
                         color="white",
                         height=40,
@@ -1303,14 +1303,14 @@ def crud_view(content, page=None):
             return ft.Container(
                 content=ft.Row([
                     ft.Row([
-                        ft.Icon(ft.Icons.CIRCLE, size=16, color=ERROR_COLOR),
+                        ft.Icon(ft.icons.CIRCLE, size=16, color=ERROR_COLOR),
                         ft.Text("Caja Cerrada", size=16, weight="bold", color=ERROR_COLOR),
                         ft.Text("- Debe abrir caja para realizar ventas", size=14),
                     ], spacing=8),
                     ft.Container(expand=True),
                     ft.ElevatedButton(
                         "Abrir Caja",
-                        icon=ft.Icons.LOCK_OPEN,
+                        icon=ft.icons.LOCK_OPEN,
                         bgcolor=SUCCESS_COLOR,
                         color="white",
                         height=40,
@@ -1329,7 +1329,7 @@ def crud_view(content, page=None):
 
         search_field = ft.TextField(
             label="🔍 Buscar producto",
-            prefix_icon=ft.Icons.SEARCH,
+            prefix_icon=ft.icons.SEARCH,
             height=45,
             border_radius=8,
             bgcolor=ft.Colors.WHITE,
@@ -1344,7 +1344,7 @@ def crud_view(content, page=None):
                 productos_list.controls.append(
                     ft.Container(
                         content=ft.Column([
-                            ft.Icon(ft.Icons.SEARCH_OFF, size=60, color=ft.Colors.GREY_400),
+                            ft.Icon(ft.icons.SEARCH_OFF, size=60, color=ft.Colors.GREY_400),
                             ft.Text("No hay productos disponibles", color=ft.Colors.GREY_600, size=14),
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
                         alignment=ft.alignment.center,
@@ -1377,7 +1377,7 @@ def crud_view(content, page=None):
                                                 ], spacing=10),
                                             ], expand=True, spacing=3),
                                             ft.IconButton(
-                                                icon=ft.Icons.ADD_SHOPPING_CART,
+                                                icon=ft.icons.ADD_SHOPPING_CART,
                                                 icon_color="white",
                                                 bgcolor=PRIMARY_COLOR,
                                                 on_click=crear_handler(id_prod, nombre, precio, stock, unidad),
@@ -1404,7 +1404,7 @@ def crud_view(content, page=None):
                         return ft.Container(
                             content=ft.Column([
                                 ft.Row([
-                                    ft.Icon(ft.Icons.INVENTORY, color=PRIMARY_COLOR, size=24),
+                                    ft.Icon(ft.icons.INVENTORY, color=PRIMARY_COLOR, size=24),
                                     ft.Text("Catálogo de Productos", size=18, weight="bold", color=PRIMARY_COLOR),
                                 ], spacing=8),
                                 search_field,
@@ -1446,7 +1446,7 @@ def crud_view(content, page=None):
 
                         pagar_button = ft.ElevatedButton(
                             content=ft.Row([
-                                ft.Icon(ft.Icons.PAYMENT, color="white", size=24),
+                                ft.Icon(ft.icons.PAYMENT, color="white", size=24),
                                 ft.Text("PROCESAR PAGO", size=16, weight="bold", color="white"),
                             ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
                             bgcolor=SUCCESS_COLOR,
@@ -1468,7 +1468,7 @@ def crud_view(content, page=None):
                                 carrito_list.controls.append(
                                     ft.Container(
                                         content=ft.Column([
-                                            ft.Icon(ft.Icons.SHOPPING_CART_OUTLINED, size=80, color=ft.Colors.GREY_400),
+                                            ft.Icon(ft.icons.SHOPPING_CART_OUTLINED, size=80, color=ft.Colors.GREY_400),
                                             ft.Text("Carrito vacío", color=ft.Colors.GREY_600, size=18, weight="bold"),
                                             ft.Text("Agregue productos del catálogo", color=ft.Colors.GREY_500, size=14),
                                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=12),
@@ -1520,7 +1520,7 @@ def crud_view(content, page=None):
                                                     ft.Text(f"Precio: {formatear_guaranies(item['precio'])}", size=13, color=ft.Colors.GREY_600),
                                                 ], expand=True, spacing=3),
                                                 ft.IconButton(
-                                                    icon=ft.Icons.DELETE_OUTLINE,
+                                                    icon=ft.icons.DELETE_OUTLINE,
                                                     icon_color=ERROR_COLOR,
                                                     on_click=crear_handler_eliminar(i),
                                                     icon_size=20,
@@ -1559,7 +1559,7 @@ def crud_view(content, page=None):
                         return ft.Container(
                             content=ft.Column([
                                 ft.Row([
-                                    ft.Icon(ft.Icons.SHOPPING_CART, color=PRIMARY_COLOR, size=24),
+                                    ft.Icon(ft.icons.SHOPPING_CART, color=PRIMARY_COLOR, size=24),
                                     ft.Text("Carrito de Venta", size=18, weight="bold", color=PRIMARY_COLOR),
                                 ], spacing=8),
                                 ft.Container(
@@ -1591,7 +1591,7 @@ def crud_view(content, page=None):
                                 ventas_list.controls.append(
                                     ft.Container(
                                         content=ft.Column([
-                                            ft.Icon(ft.Icons.RECEIPT_LONG, size=60, color=ft.Colors.GREY_400),
+                                            ft.Icon(ft.icons.RECEIPT_LONG, size=60, color=ft.Colors.GREY_400),
                                             ft.Text("Sin ventas", color=ft.Colors.GREY_600, size=16, weight="bold"),
                                             ft.Text("Las ventas aparecerán aquí", color=ft.Colors.GREY_500, size=12),
                                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
@@ -1641,7 +1641,7 @@ def crud_view(content, page=None):
                         return ft.Container(
                             content=ft.Column([
                                 ft.Row([
-                                    ft.Icon(ft.Icons.RECEIPT_LONG, color=PRIMARY_COLOR, size=24),
+                                    ft.Icon(ft.icons.RECEIPT_LONG, color=PRIMARY_COLOR, size=24),
                                     ft.Text("Ventas del Día", size=18, weight="bold", color=PRIMARY_COLOR),
                                 ], spacing=8),
                                 total_ventas_text,
@@ -1680,7 +1680,7 @@ def crud_view(content, page=None):
                     else:
                         contenido_principal = ft.Container(
                             content=ft.Column([
-                                ft.Icon(ft.Icons.LOCK_OUTLINE, size=100, color=ft.Colors.GREY_400),
+                                ft.Icon(ft.icons.LOCK_OUTLINE, size=100, color=ft.Colors.GREY_400),
                                 ft.Text("Caja Cerrada", size=24, weight="bold", color=ft.Colors.GREY_600),
                                 ft.Text("Debe abrir caja para realizar ventas", size=16, color=ft.Colors.GREY_500),
                             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=15),

@@ -165,13 +165,13 @@ def dashboard_view(content, page=None):
     
     # Items del menú con verificación de permisos
     items_config = [
-        ("Productos", ft.Icons.SPA, "productos", productos.crud_view),
-        ("Clientes", ft.Icons.PEOPLE, "clientes", clientes.crud_view),
-        ("Proveedores", ft.Icons.LOCAL_SHIPPING, "proveedores", proveedores.crud_view),
-        ("Pedidos", ft.Icons.RECEIPT, "pedidos", pedidos.crud_view),
-        ("Ventas", ft.Icons.PAID, "ventas", ventas.crud_view),
-        ("Reportes", ft.Icons.INSERT_CHART, "reportes", reportes.crud_view),
-        ("Usuarios", ft.Icons.ADMIN_PANEL_SETTINGS, "usuarios", usuarios.crud_view),
+        ("Productos", ft.icons.SPA, "productos", productos.crud_view),
+        ("Clientes", ft.icons.PEOPLE, "clientes", clientes.crud_view),
+        ("Proveedores", ft.icons.LOCAL_SHIPPING, "proveedores", proveedores.crud_view),
+        ("Pedidos", ft.icons.RECEIPT, "pedidos", pedidos.crud_view),
+        ("Ventas", ft.icons.PAID, "ventas", ventas.crud_view),
+        ("Reportes", ft.icons.INSERT_CHART, "reportes", reportes.crud_view),
+        ("Usuarios", ft.icons.ADMIN_PANEL_SETTINGS, "usuarios", usuarios.crud_view),
     ]
     
     for titulo, icono, modulo, view_func in items_config:
@@ -184,7 +184,7 @@ def dashboard_view(content, page=None):
         menu_items.append(
             ft.ListTile(
                 title=ft.Text("Sin acceso", color="#FF5722"),
-                leading=ft.Icon(ft.Icons.BLOCK, color="#FF5722"),
+                leading=ft.Icon(ft.icons.BLOCK, color="#FF5722"),
             )
         )
 
@@ -196,7 +196,7 @@ def dashboard_view(content, page=None):
 
     logout_button = ft.ListTile(
         title=ft.Text("Cerrar Sesión", color="#FF5722"),
-        leading=ft.Icon(ft.Icons.LOGOUT, color="#FF5722"),
+        leading=ft.Icon(ft.icons.LOGOUT, color="#FF5722"),
         on_click=cerrar_sesion,
     )
 
@@ -242,7 +242,7 @@ def dashboard_view(content, page=None):
     kpi_cards = ft.Row([
         ft.Container(
             content=ft.Column([
-                ft.Icon(ft.Icons.PAID, color="#2196F3", size=32),
+                ft.Icon(ft.icons.PAID, color="#2196F3", size=32),
                 ft.Text("Ventas Totales", size=16, text_align=ft.TextAlign.CENTER),
                 ft.Text(f"₲ {kpis['ventas_totales']:,.0f}", size=24, weight="bold"),
             ], spacing=5, alignment=ft.MainAxisAlignment.CENTER),
@@ -254,7 +254,7 @@ def dashboard_view(content, page=None):
         ),
         ft.Container(
             content=ft.Column([
-                ft.Icon(ft.Icons.RECEIPT, color="#FF9800", size=32),
+                ft.Icon(ft.icons.RECEIPT, color="#FF9800", size=32),
                 ft.Text("Pedidos Pendientes", size=16, text_align=ft.TextAlign.CENTER),
                 ft.Text(f"{kpis['pedidos_pendientes']}", size=24, weight="bold"),
             ], spacing=5, alignment=ft.MainAxisAlignment.CENTER),
@@ -266,7 +266,7 @@ def dashboard_view(content, page=None):
         ),
         ft.Container(
             content=ft.Column([
-                ft.Icon(ft.Icons.DONE, color="#4CAF50", size=32),
+                ft.Icon(ft.icons.DONE, color="#4CAF50", size=32),
                 ft.Text("Pedidos Entregados", size=16, text_align=ft.TextAlign.CENTER),
                 ft.Text(f"{kpis['pedidos_entregados']}", size=24, weight="bold"),
             ], spacing=5, alignment=ft.MainAxisAlignment.CENTER),
@@ -278,7 +278,7 @@ def dashboard_view(content, page=None):
         ),
         ft.Container(
             content=ft.Column([
-                ft.Icon(ft.Icons.PEOPLE, color="#0288D1", size=32),
+                ft.Icon(ft.icons.PEOPLE, color="#0288D1", size=32),
                 ft.Text("Clientes Totales", size=16, text_align=ft.TextAlign.CENTER),
                 ft.Text(f"{kpis['clientes_totales']}", size=24, weight="bold"),
             ], spacing=5, alignment=ft.MainAxisAlignment.CENTER),
@@ -360,17 +360,17 @@ def dashboard_view(content, page=None):
     permisos_info = ft.Container(
         content=ft.Column([
             ft.Row([
-                ft.Icon(ft.Icons.VERIFIED_USER, color=PRIMARY_COLOR, size=20),
+                ft.Icon(ft.icons.VERIFIED_USER, color=PRIMARY_COLOR, size=20),
                 ft.Text(f"Sesión: {current_user['nombre_completo']} ({current_user['rol']})", 
                        size=16, weight="bold", color=PRIMARY_COLOR),
             ], spacing=8),
             ft.Row([
-                ft.Icon(ft.Icons.DASHBOARD, color="#0288D1", size=16),
+                ft.Icon(ft.icons.DASHBOARD, color="#0288D1", size=16),
                 ft.Text(f"Módulos disponibles: {len(modulos_permitidos)}", size=12, color="#0288D1"),
             ], spacing=5),
             ft.Row([
                 ft.Icon(
-                    ft.Icons.ADMIN_PANEL_SETTINGS if current_user['rol'] == 'Administrador' else ft.Icons.PERSON, 
+                    ft.icons.ADMIN_PANEL_SETTINGS if current_user['rol'] == 'Administrador' else ft.icons.PERSON, 
                     color=PRIMARY_COLOR if current_user['rol'] == 'Administrador' else "#FF9800", 
                     size=16
                 ),

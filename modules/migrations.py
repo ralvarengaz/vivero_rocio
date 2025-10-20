@@ -1,4 +1,5 @@
 import os
+import time
 import psycopg2
 
 def ensure_schema(db_url):
@@ -12,7 +13,48 @@ def ensure_schema(db_url):
 
         print("🔄 Creando esquema de base de datos PostgreSQL...")
 
-        # ========== TABLA USUARIOS ==========
+        # ========== TABLA USUARIOS - Con migración de estructura antigua ==========
+        # Verificar si existe una tabla usuarios con estructura antigua (sin username)
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'usuarios' AND column_name = 'username'
+        """)
+        username_exists = cur.fetchone()
+        
+        # Si la tabla existe pero no tiene la columna username, necesita ser migrada
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'usuarios'
+            )
+        """)
+        table_exists = cur.fetchone()[0]
+        
+        if table_exists and username_exists is None:
+            print("⚠️ Detectada tabla usuarios con estructura antigua. Migrando...")
+            # Respaldar datos existentes si los hay
+            cur.execute("SELECT COUNT(*) FROM usuarios")
+            user_count = cur.fetchone()[0]
+            
+            if user_count > 0:
+                print(f"📦 Respaldando {user_count} usuarios...")
+                # Usar timestamp para evitar conflictos en múltiples migraciones
+                timestamp = int(time.time())
+                cur.execute(f"""
+                    CREATE TABLE IF NOT EXISTS usuarios_backup_{timestamp} AS 
+                    SELECT * FROM usuarios
+                """)
+                print(f"   Respaldo creado: usuarios_backup_{timestamp}")
+            
+            # Advertencia sobre CASCADE
+            print("⚠️ DROP CASCADE eliminará dependencias (foreign keys, permisos_usuario, etc.)")
+            # Eliminar tabla antigua
+            print("🗑️ Eliminando tabla usuarios antigua...")
+            cur.execute("DROP TABLE IF EXISTS usuarios CASCADE")
+            print("✅ Tabla antigua eliminada")
+        
+        # Crear tabla usuarios con estructura correcta
         cur.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,
@@ -30,9 +72,18 @@ def ensure_schema(db_url):
         );
         """)
         
-        # Índices para usuarios
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_usuarios_username ON usuarios(username);")
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_usuarios_rol ON usuarios(rol);")
+        # Verificar que la columna username existe antes de crear índices
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'usuarios' AND column_name = 'username'
+        """)
+        if cur.fetchone() is not None:
+            # Índices para usuarios
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_usuarios_username ON usuarios(username);")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_usuarios_rol ON usuarios(rol);")
+        else:
+            print("⚠️ No se pudo crear índice en username: columna no encontrada")
         
         # ========== TABLA PERMISOS_USUARIO ==========
         cur.execute("""

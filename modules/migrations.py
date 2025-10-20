@@ -17,6 +17,8 @@ def ensure_schema(db_url):
         # ========== DROP ALL EXISTING TABLES ==========
         # Drop tables in correct order to avoid foreign key conflicts
         # (reverse order of creation - detail tables first, then parent tables)
+        # Nota: Orden explícito requerido por especificación del problema.
+        # CASCADE garantiza eliminación de todas las dependencias.
         print("\n🗑️ Eliminando tablas existentes...")
         
         print("   Eliminando detalle_pedido...")
@@ -255,6 +257,10 @@ def ensure_schema(db_url):
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_detalle_pedido_pedido ON detalle_pedido(pedido_id);")
         print("   ✅ Tabla detalle_pedido creada")
+        
+        # ========== DATOS INICIALES ==========
+        # Nota: No necesitamos ON CONFLICT porque todas las tablas fueron eliminadas
+        # y recreadas vacías. Estos INSERT son seguros en este contexto.
         
         # ========== USUARIO ADMINISTRADOR POR DEFECTO ==========
         print("\n👤 Creando usuario administrador por defecto...")

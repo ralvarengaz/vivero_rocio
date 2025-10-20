@@ -12,13 +12,13 @@ def crud_view(content, page=None):
     content.controls.clear()
 
     # --- Campos del formulario ---
-    nombre = ft.TextField(label="Nombre", width=300, hint_text="Ej: Juan Pérez", prefix_icon=ft.Icons.PERSON)
-    ruc = ft.TextField(label="RUC", width=300, hint_text="Ej: 1234567-8", prefix_icon=ft.Icons.BADGE)
-    ciudad = ft.TextField(label="Ciudad", width=300, hint_text="Buscar ciudad...", prefix_icon=ft.Icons.LOCATION_CITY)
+    nombre = ft.TextField(label="Nombre", width=300, hint_text="Ej: Juan Pérez", prefix_icon=ft.icons.PERSON)
+    ruc = ft.TextField(label="RUC", width=300, hint_text="Ej: 1234567-8", prefix_icon=ft.icons.BADGE)
+    ciudad = ft.TextField(label="Ciudad", width=300, hint_text="Buscar ciudad...", prefix_icon=ft.icons.LOCATION_CITY)
     sugerencias_ciudad = ft.Column(visible=False, spacing=5)
-    ubicacion = ft.TextField(label="Ubicación", width=300, hint_text="Dirección o coordenadas", prefix_icon=ft.Icons.MAP)
-    telefono = ft.TextField(label="Teléfono", width=220, hint_text="Ej: 0981123456", prefix_icon=ft.Icons.PHONE)
-    correo = ft.TextField(label="Correo electrónico", width=300, hint_text="Ej: usuario@email.com", prefix_icon=ft.Icons.EMAIL)
+    ubicacion = ft.TextField(label="Ubicación", width=300, hint_text="Dirección o coordenadas", prefix_icon=ft.icons.MAP)
+    telefono = ft.TextField(label="Teléfono", width=220, hint_text="Ej: 0981123456", prefix_icon=ft.icons.PHONE)
+    correo = ft.TextField(label="Correo electrónico", width=300, hint_text="Ej: usuario@email.com", prefix_icon=ft.icons.EMAIL)
 
     selected_id = {"id": None}
     error_msg = ft.Text("", color="red")
@@ -45,7 +45,7 @@ def crud_view(content, page=None):
         [
             telefono,
             ft.IconButton(
-                icon=ft.Icons.CHAT,
+                icon=ft.icons.CHAT,
                 icon_color="#25D366",
                 tooltip="Contactar por WhatsApp",
                 on_click=abrir_whatsapp_form,
@@ -55,8 +55,8 @@ def crud_view(content, page=None):
         spacing=5,
     )
 
-    filtro_nombre = ft.TextField(label="Buscar por Nombre", width=250, prefix_icon=ft.Icons.SEARCH)
-    filtro_ruc = ft.TextField(label="Buscar por RUC", width=250, prefix_icon=ft.Icons.SEARCH)
+    filtro_nombre = ft.TextField(label="Buscar por Nombre", width=250, prefix_icon=ft.icons.SEARCH)
+    filtro_ruc = ft.TextField(label="Buscar por RUC", width=250, prefix_icon=ft.icons.SEARCH)
 
     def show_snackbar(msg, color):
         page.open(ft.SnackBar(content=ft.Text(msg, color="white"), bgcolor=color, duration=3000))
@@ -118,7 +118,7 @@ def crud_view(content, page=None):
                         ft.DataCell(ft.Text(c_tel or "")),
                         ft.DataCell(
                             ft.IconButton(
-                                icon=ft.Icons.CHAT,
+                                icon=ft.icons.CHAT,
                                 icon_color="#25D366",
                                 tooltip=f"Contactar a {c_nombre or 'cliente'}",
                                 on_click=lambda e, num=c_tel, nom=c_nombre: abrir_whatsapp_numero(num, nom),
@@ -126,7 +126,7 @@ def crud_view(content, page=None):
                         ),
                         ft.DataCell(
                             ft.IconButton(
-                                icon=ft.Icons.MAP,
+                                icon=ft.icons.MAP,
                                 icon_color=PRIMARY_COLOR,
                                 tooltip="Ver ubicación",
                                 on_click=lambda e, destino=c_ubicacion: (
@@ -255,17 +255,17 @@ def crud_view(content, page=None):
 
     botones = ft.Row(
         [
-            ft.ElevatedButton("Agregar", on_click=agregar_cliente, bgcolor=PRIMARY_COLOR, color="white", icon=ft.Icons.ADD),
-            ft.ElevatedButton("Editar", on_click=editar_cliente, bgcolor="#0288D1", color="white", icon=ft.Icons.EDIT),
-            ft.ElevatedButton("Eliminar", on_click=eliminar_cliente, bgcolor="#C62828", color="white", icon=ft.Icons.DELETE),
-            ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.Icons.CLEAR),
+            ft.ElevatedButton("Agregar", on_click=agregar_cliente, bgcolor=PRIMARY_COLOR, color="white", icon=ft.icons.ADD),
+            ft.ElevatedButton("Editar", on_click=editar_cliente, bgcolor="#0288D1", color="white", icon=ft.icons.EDIT),
+            ft.ElevatedButton("Eliminar", on_click=eliminar_cliente, bgcolor="#C62828", color="white", icon=ft.icons.DELETE),
+            ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.icons.CLEAR),
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         spacing=10,
     )
 
     volver_icon = ft.IconButton(
-        icon=ft.Icons.ARROW_BACK,
+        icon=ft.icons.ARROW_BACK,
         tooltip="Volver al Dashboard",
         icon_color=PRIMARY_COLOR,
         on_click=lambda e: dashboard.dashboard_view(content, page=page),

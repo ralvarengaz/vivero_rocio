@@ -40,7 +40,7 @@ def crud_view(content, page=None):
     columnas_disponibles = verificar_estructura_tabla()
 
     # --- Campo Nombre con sugerencias ---
-    nombre = ft.TextField(label="Nombre", width=300, hint_text="Ej: Rosa", prefix_icon=ft.Icons.SPA)
+    nombre = ft.TextField(label="Nombre", width=300, hint_text="Ej: Rosa", prefix_icon=ft.icons.SPA)
     sugerencias = ft.Column(spacing=2, visible=False)
 
     def actualizar_sugerencias(e):
@@ -92,11 +92,11 @@ def crud_view(content, page=None):
         ],
     )
 
-    precio_compra = ft.TextField(label="Precio Compra (Gs.)", width=200, hint_text="Ej: 12000", prefix_icon=ft.Icons.MONEY)
-    precio_venta = ft.TextField(label="Precio Venta (Gs.)", width=200, hint_text="Ej: 15000", prefix_icon=ft.Icons.PAID)
+    precio_compra = ft.TextField(label="Precio Compra (Gs.)", width=200, hint_text="Ej: 12000", prefix_icon=ft.icons.MONEY)
+    precio_venta = ft.TextField(label="Precio Venta (Gs.)", width=200, hint_text="Ej: 15000", prefix_icon=ft.icons.PAID)
     
     # Campo de stock
-    stock = ft.TextField(label="Stock", width=150, hint_text="Ej: 100", prefix_icon=ft.Icons.INVENTORY, value="0")
+    stock = ft.TextField(label="Stock", width=150, hint_text="Ej: 100", prefix_icon=ft.icons.INVENTORY, value="0")
 
     # --- Tabla y búsqueda (CORREGIDA) ---
     tabla = ft.DataTable(
@@ -116,7 +116,7 @@ def crud_view(content, page=None):
     busqueda = ft.TextField(
         label="Buscar producto",
         width=300,
-        prefix_icon=ft.Icons.SEARCH,
+        prefix_icon=ft.icons.SEARCH,
         on_change=lambda e: refrescar_tabla(busqueda.value),
     )
 
@@ -420,17 +420,17 @@ def crud_view(content, page=None):
 
     botones = ft.Row(
         [
-            ft.ElevatedButton("Agregar", on_click=agregar_producto, bgcolor=PRIMARY_COLOR, color="white", icon=ft.Icons.ADD),
-            ft.ElevatedButton("Editar", on_click=editar_producto, bgcolor="#0288D1", color="white", icon=ft.Icons.EDIT),
-            ft.ElevatedButton("Eliminar", on_click=eliminar_producto, bgcolor="#C62828", color="white", icon=ft.Icons.DELETE),
-            ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.Icons.CLEAR),
+            ft.ElevatedButton("Agregar", on_click=agregar_producto, bgcolor=PRIMARY_COLOR, color="white", icon=ft.icons.ADD),
+            ft.ElevatedButton("Editar", on_click=editar_producto, bgcolor="#0288D1", color="white", icon=ft.icons.EDIT),
+            ft.ElevatedButton("Eliminar", on_click=eliminar_producto, bgcolor="#C62828", color="white", icon=ft.icons.DELETE),
+            ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.icons.CLEAR),
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         spacing=10,
     )
 
     volver_icon = ft.IconButton(
-        icon=ft.Icons.ARROW_BACK,
+        icon=ft.icons.ARROW_BACK,
         tooltip="Volver al Dashboard",
         icon_color=PRIMARY_COLOR,
         on_click=lambda e: dashboard.dashboard_view(content, page=page),

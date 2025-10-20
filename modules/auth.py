@@ -12,7 +12,7 @@ def login_view(container, page: ft.Page):
         width=300, 
         autofocus=True,
         hint_text="Ingresa tu usuario",
-        prefix_icon=ft.Icons.PERSON,
+        prefix_icon=ft.icons.PERSON,
         border_color="#2E7D32"
     )
     
@@ -22,7 +22,7 @@ def login_view(container, page: ft.Page):
         password=True, 
         can_reveal_password=True,
         hint_text="Ingresa tu contraseña",
-        prefix_icon=ft.Icons.LOCK,
+        prefix_icon=ft.icons.LOCK,
         border_color="#2E7D32"
     )
     
@@ -112,7 +112,7 @@ def login_view(container, page: ft.Page):
 
     btn_login = ft.ElevatedButton(
         text="Iniciar Sesión",
-        icon=ft.Icons.LOGIN,
+        icon=ft.icons.LOGIN,
         on_click=autenticar,
         bgcolor="#2E7D32",
         color="white",
@@ -128,7 +128,7 @@ def login_view(container, page: ft.Page):
         content=ft.Column(
             [
                 ft.Container(
-                    content=ft.Icon(ft.Icons.ECO, size=80, color="#2E7D32"),
+                    content=ft.Icon(ft.icons.ECO, size=80, color="#2E7D32"),
                     padding=ft.padding.only(bottom=10)
                 ),
                 ft.Text(

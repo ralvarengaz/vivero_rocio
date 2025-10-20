@@ -365,7 +365,7 @@ def crud_view(content, page=None):
         return ft.Container(
             content=ft.Row([
                 ft.IconButton(
-                    icon=ft.Icons.ARROW_BACK,
+                    icon=ft.icons.ARROW_BACK,
                     icon_color=PRIMARY_COLOR,
                     icon_size=28,
                     tooltip="Volver al Dashboard",
@@ -374,7 +374,7 @@ def crud_view(content, page=None):
                     style=ft.ButtonStyle(shape=ft.CircleBorder()),
                 ),
                 ft.Row([
-                    ft.Icon(ft.Icons.ASSIGNMENT, size=28, color=PRIMARY_COLOR),
+                    ft.Icon(ft.icons.ASSIGNMENT, size=28, color=PRIMARY_COLOR),
                     ft.Text("Gestión de Pedidos", size=24, weight="bold", color=PRIMARY_COLOR),
                 ], spacing=8),
                 ft.Container(expand=True),
@@ -446,7 +446,7 @@ def crud_view(content, page=None):
     )
 
     whatsapp_btn = ft.IconButton(
-        icon=ft.Icons.CHAT,
+        icon=ft.icons.CHAT,
         icon_color="#25D366",
         tooltip="WhatsApp",
         bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
@@ -561,7 +561,7 @@ def crud_view(content, page=None):
     )
 
     agregar_btn = ft.IconButton(
-        icon=ft.Icons.ADD_SHOPPING_CART,
+        icon=ft.icons.ADD_SHOPPING_CART,
         icon_color="white",
         bgcolor=PRIMARY_COLOR,
         tooltip="Agregar al pedido",
@@ -616,7 +616,7 @@ def crud_view(content, page=None):
     busqueda_pedidos = ft.TextField(
         label="🔍 Buscar pedidos",
         width=250,
-        prefix_icon=ft.Icons.SEARCH,
+        prefix_icon=ft.icons.SEARCH,
         on_change=lambda e: refrescar_pedidos(e.control.value),
         border_radius=8,
     )
@@ -636,7 +636,7 @@ def crud_view(content, page=None):
 
     calcular_rutas_btn = ft.ElevatedButton(
         content=ft.Row([
-            ft.Icon(ft.Icons.ROUTE, size=18),
+            ft.Icon(ft.icons.ROUTE, size=18),
             ft.Text("Calcular Rutas", weight="bold"),
         ], spacing=4),
         on_click=lambda e: mostrar_calculadora_rutas(),
@@ -740,7 +740,7 @@ def crud_view(content, page=None):
                             title=ft.Text(prod["nombre"], weight="bold", size=13),
                             subtitle=ft.Text(f'{format_gs(prod["precio"])} - Stock: {prod["stock"]}',
                                             color=PRIMARY_COLOR, weight="bold", size=11),
-                            leading=ft.Icon(ft.Icons.INVENTORY_2, color=ACCENT_COLOR, size=20),
+                            leading=ft.Icon(ft.icons.INVENTORY_2, color=ACCENT_COLOR, size=20),
                             on_click=lambda e, p=prod: seleccionar_producto(p),
                             dense=True,
                         ),
@@ -862,7 +862,7 @@ def crud_view(content, page=None):
                                             weight="bold", color=PRIMARY_COLOR, size=12)),
                         ft.DataCell(
                             ft.IconButton(
-                                icon=ft.Icons.DELETE_OUTLINE,
+                                icon=ft.icons.DELETE_OUTLINE,
                                 icon_color=ERROR_COLOR,
                                 tooltip="Eliminar",
                                 on_click=lambda e, idx=i: eliminar_producto(idx),
@@ -1059,28 +1059,28 @@ def crud_view(content, page=None):
                                 ft.DataCell(
                                     ft.Row([
                                         ft.IconButton(
-                                            icon=ft.Icons.EDIT,
+                                            icon=ft.icons.EDIT,
                                             icon_color=ft.Colors.BLUE,
                                             tooltip="Editar",
                                             on_click=lambda e, pid=pid: editar_pedido(pid),
                                             icon_size=16,
                                         ),
                                         ft.IconButton(
-                                            icon=ft.Icons.DELETE,
+                                            icon=ft.icons.DELETE,
                                             icon_color=ERROR_COLOR,
                                             tooltip="Eliminar",
                                             on_click=lambda e, pid=pid: eliminar_pedido(pid),
                                             icon_size=16,
                                         ),
                                         ft.IconButton(
-                                            icon=ft.Icons.MAP,
+                                            icon=ft.icons.MAP,
                                             icon_color=SUCCESS_COLOR,
                                             tooltip="Ver ubicación",
                                             on_click=lambda e, ubi=ubicacion_val: abrir_mapa(ubi),
                                             icon_size=16,
                                         ),
                                         ft.IconButton(
-                                            icon=ft.Icons.PICTURE_AS_PDF,
+                                            icon=ft.icons.PICTURE_AS_PDF,
                                             icon_color=ERROR_COLOR,
                                             tooltip="Generar Ticket PDF",
                                             on_click=lambda e, pid=pid: generar_ticket_pedido_btn(pid),
@@ -1257,7 +1257,7 @@ def crud_view(content, page=None):
                                     ft.Text(f"💰 {format_gs(total or 0)}", size=12, color=PRIMARY_COLOR, weight="bold"),
                                 ], spacing=2, expand=True),
                                 ft.IconButton(
-                                    icon=ft.Icons.MAP,
+                                    icon=ft.icons.MAP,
                                     icon_color=SUCCESS_COLOR,
                                     tooltip="Ver en mapa",
                                     on_click=lambda e, ubi=ubicacion: abrir_mapa(ubi),
@@ -1320,7 +1320,7 @@ def crud_view(content, page=None):
             modal_rutas = ft.AlertDialog(
                 modal=True,
                 title=ft.Row([
-                    ft.Icon(ft.Icons.ROUTE, color=BLUE_COLOR, size=28),
+                    ft.Icon(ft.icons.ROUTE, color=BLUE_COLOR, size=28),
                     ft.Text("Calculadora de Rutas de Entrega", size=20, weight="bold"),
                 ], spacing=8),
                 content=ft.Container(
@@ -1344,7 +1344,7 @@ def crud_view(content, page=None):
                     ft.TextButton("Cancelar", on_click=lambda e: cerrar_modal_rutas()),
                     ft.ElevatedButton(
                         content=ft.Row([
-                            ft.Icon(ft.Icons.CHECK, size=16),
+                            ft.Icon(ft.icons.CHECK, size=16),
                             ft.Text("Entregado", weight="bold"),
                         ], spacing=4),
                         on_click=lambda e: marcar_como_entregado(),
@@ -1353,7 +1353,7 @@ def crud_view(content, page=None):
                     ),
                     ft.ElevatedButton(
                         content=ft.Row([
-                            ft.Icon(ft.Icons.MAP, size=16),
+                            ft.Icon(ft.icons.MAP, size=16),
                             ft.Text("Ver Ruta", weight="bold"),
                         ], spacing=4),
                         on_click=lambda e: abrir_ruta_google(),
@@ -1377,7 +1377,7 @@ def crud_view(content, page=None):
         content=ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Icon(ft.Icons.PERSON, color=PRIMARY_COLOR, size=18),
+                    ft.Icon(ft.icons.PERSON, color=PRIMARY_COLOR, size=18),
                     ft.Text("Cliente", size=16, weight="bold", color=PRIMARY_COLOR),
                 ], spacing=6),
                 cliente_dd,
@@ -1392,7 +1392,7 @@ def crud_view(content, page=None):
         content=ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Icon(ft.Icons.ASSIGNMENT, color=PRIMARY_COLOR, size=18),
+                    ft.Icon(ft.icons.ASSIGNMENT, color=PRIMARY_COLOR, size=18),
                     ft.Text("Datos del Pedido", size=16, weight="bold", color=PRIMARY_COLOR),
                 ], spacing=6),
                 ft.Row([destino, ubicacion], spacing=10),
@@ -1400,7 +1400,7 @@ def crud_view(content, page=None):
                     ft.Row([
                         fecha_pedido,
                         ft.IconButton(
-                            icon=ft.Icons.CALENDAR_TODAY,
+                            icon=ft.icons.CALENDAR_TODAY,
                             icon_color=PRIMARY_COLOR,
                             tooltip="Fecha pedido",
                             on_click=lambda e: page.open(date_picker_pedido),
@@ -1410,7 +1410,7 @@ def crud_view(content, page=None):
                     ft.Row([
                         fecha_entrega,
                         ft.IconButton(
-                            icon=ft.Icons.CALENDAR_TODAY,
+                            icon=ft.icons.CALENDAR_TODAY,
                             icon_color=ACCENT_COLOR,
                             tooltip="Fecha entrega",
                             on_click=lambda e: page.open(date_picker_entrega),
@@ -1429,16 +1429,16 @@ def crud_view(content, page=None):
         content=ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Icon(ft.Icons.INVENTORY_2, color=PRIMARY_COLOR, size=18),
+                    ft.Icon(ft.icons.INVENTORY_2, color=PRIMARY_COLOR, size=18),
                     ft.Text("Productos", size=16, weight="bold", color=PRIMARY_COLOR),
                 ], spacing=6),
                 ft.Row([
                     ft.Column([producto_field, sugerencias_list], width=280),
                     ft.Row([
-                        ft.IconButton(icon=ft.Icons.REMOVE, on_click=lambda e: cambiar_cantidad(-1),
+                        ft.IconButton(icon=ft.icons.REMOVE, on_click=lambda e: cambiar_cantidad(-1),
                                     icon_color=ERROR_COLOR, tooltip="Reducir", icon_size=16),
                         cantidad_field,
-                        ft.IconButton(icon=ft.Icons.ADD, on_click=lambda e: cambiar_cantidad(1),
+                        ft.IconButton(icon=ft.icons.ADD, on_click=lambda e: cambiar_cantidad(1),
                                     icon_color=SUCCESS_COLOR, tooltip="Aumentar", icon_size=16),
                     ], spacing=2, vertical_alignment=ft.CrossAxisAlignment.CENTER),
                     agregar_btn,
@@ -1455,13 +1455,13 @@ def crud_view(content, page=None):
         content=ft.Container(
             content=ft.Row([
                 ft.ElevatedButton(
-                    content=ft.Row([ft.Icon(ft.Icons.SAVE, size=16), ft.Text("Guardar", weight="bold")], spacing=4),
+                    content=ft.Row([ft.Icon(ft.icons.SAVE, size=16), ft.Text("Guardar", weight="bold")], spacing=4),
                     on_click=lambda e: guardar_pedido(),
                     bgcolor=SUCCESS_COLOR, color="white", height=40,
                     style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
                 ),
                 ft.OutlinedButton(
-                    content=ft.Row([ft.Icon(ft.Icons.CLEAR_ALL, size=16), ft.Text("Limpiar", weight="bold")], spacing=4),
+                    content=ft.Row([ft.Icon(ft.icons.CLEAR_ALL, size=16), ft.Text("Limpiar", weight="bold")], spacing=4),
                     on_click=lambda e: limpiar_formulario(), height=40,
                     style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8),
                                         side=ft.BorderSide(2, WARNING_COLOR), color=WARNING_COLOR),
@@ -1480,7 +1480,7 @@ def crud_view(content, page=None):
         content=ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Icon(ft.Icons.LIST_ALT, color=PRIMARY_COLOR, size=18),
+                    ft.Icon(ft.icons.LIST_ALT, color=PRIMARY_COLOR, size=18),
                     ft.Text("Pedidos Registrados", size=16, weight="bold", color=PRIMARY_COLOR),
                     ft.Container(expand=True),
                     busqueda_pedidos, filtro_estado,

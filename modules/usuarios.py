@@ -19,11 +19,11 @@ def crud_view(content, page=None):
     usuario_actual = "ralvarengaz"  # Usuario logueado (en producción vendría de sesión)
 
     # --- Campos del formulario ---
-    username = ft.TextField(label="Nombre de Usuario", width=200, hint_text="usuario123", prefix_icon=ft.Icons.PERSON)
-    password = ft.TextField(label="Contraseña", width=200, password=True, can_reveal_password=True, prefix_icon=ft.Icons.LOCK)
-    nombre_completo = ft.TextField(label="Nombre Completo", width=300, hint_text="Juan Pérez", prefix_icon=ft.Icons.BADGE)
-    email = ft.TextField(label="Email", width=250, hint_text="usuario@email.com", prefix_icon=ft.Icons.EMAIL)
-    telefono = ft.TextField(label="Teléfono", width=180, hint_text="0981123456", prefix_icon=ft.Icons.PHONE)
+    username = ft.TextField(label="Nombre de Usuario", width=200, hint_text="usuario123", prefix_icon=ft.icons.PERSON)
+    password = ft.TextField(label="Contraseña", width=200, password=True, can_reveal_password=True, prefix_icon=ft.icons.LOCK)
+    nombre_completo = ft.TextField(label="Nombre Completo", width=300, hint_text="Juan Pérez", prefix_icon=ft.icons.BADGE)
+    email = ft.TextField(label="Email", width=250, hint_text="usuario@email.com", prefix_icon=ft.icons.EMAIL)
+    telefono = ft.TextField(label="Teléfono", width=180, hint_text="0981123456", prefix_icon=ft.icons.PHONE)
     
     rol = ft.Dropdown(
         label="Rol",
@@ -78,7 +78,7 @@ def crud_view(content, page=None):
     permisos_ui = crear_permisos_ui()
 
     # --- Filtros ---
-    filtro_username = ft.TextField(label="Buscar por Usuario", width=180, prefix_icon=ft.Icons.SEARCH)
+    filtro_username = ft.TextField(label="Buscar por Usuario", width=180, prefix_icon=ft.icons.SEARCH)
     filtro_rol = ft.Dropdown(
         label="Filtrar por Rol",
         width=150,
@@ -446,10 +446,10 @@ def crud_view(content, page=None):
     
     # Botones de acción
     botones = ft.Row([
-        ft.ElevatedButton("Crear Usuario", on_click=agregar_usuario, bgcolor=PRIMARY_COLOR, color="white", icon=ft.Icons.ADD),
-        ft.ElevatedButton("Editar Usuario", on_click=editar_usuario, bgcolor="#0288D1", color="white", icon=ft.Icons.EDIT),
-        ft.ElevatedButton("Eliminar Usuario", on_click=eliminar_usuario, bgcolor="#C62828", color="white", icon=ft.Icons.DELETE),
-        ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.Icons.CLEAR),
+        ft.ElevatedButton("Crear Usuario", on_click=agregar_usuario, bgcolor=PRIMARY_COLOR, color="white", icon=ft.icons.ADD),
+        ft.ElevatedButton("Editar Usuario", on_click=editar_usuario, bgcolor="#0288D1", color="white", icon=ft.icons.EDIT),
+        ft.ElevatedButton("Eliminar Usuario", on_click=eliminar_usuario, bgcolor="#C62828", color="white", icon=ft.icons.DELETE),
+        ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.icons.CLEAR),
     ], alignment=ft.MainAxisAlignment.SPACE_EVENLY, spacing=10)
 
     # Botón para aplicar permisos por rol
@@ -457,12 +457,12 @@ def crud_view(content, page=None):
         "Aplicar Permisos por Rol",
         bgcolor="#FF9800",
         color="white",
-        icon=ft.Icons.SECURITY,
+        icon=ft.icons.SECURITY,
         on_click=lambda e: aplicar_permisos_por_rol(rol.value)
     )
 
     volver_icon = ft.IconButton(
-        icon=ft.Icons.ARROW_BACK,
+        icon=ft.icons.ARROW_BACK,
         tooltip="Volver al Dashboard",
         icon_color=PRIMARY_COLOR,
         on_click=lambda e: dashboard.dashboard_view(content, page=page),

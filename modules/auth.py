@@ -169,7 +169,7 @@ def login_view(container, page: ft.Page):
         shadow=ft.BoxShadow(
             spread_radius=1,
             blur_radius=15,
-            color=ft.colors.with_opacity(0.3, "black"),
+            color=ft.Colors.with_opacity(0.3, "black"),
             offset=ft.Offset(0, 4)
         )
     )

@@ -370,7 +370,7 @@ def crud_view(content, page=None):
                     icon_size=28,
                     tooltip="Volver al Dashboard",
                     on_click=volver_dashboard,
-                    bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+                    bgcolor=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
                     style=ft.ButtonStyle(shape=ft.CircleBorder()),
                 ),
                 ft.Row([
@@ -380,14 +380,14 @@ def crud_view(content, page=None):
                 ft.Container(expand=True),
                 ft.Column([
                     ft.Text(f"📅 {datetime.now().strftime('%d/%m/%Y')}", size=14, weight="bold"),
-                    ft.Text(f"🕒 {datetime.now().strftime('%H:%M')}", size=12, color=ft.Colors.GREY_600),
-                    ft.Text(f"👤 {usuario_actual}", size=11, color=ft.Colors.GREY_500),
+                    ft.Text(f"🕒 {datetime.now().strftime('%H:%M')}", size=12, color=ft.colors.GREY_600),
+                    ft.Text(f"👤 {usuario_actual}", size=11, color=ft.colors.GREY_500),
                 ], horizontal_alignment=ft.CrossAxisAlignment.END, spacing=2),
             ], alignment=ft.MainAxisAlignment.START, spacing=12),
             padding=20,
-            bgcolor=ft.Colors.WHITE,
+            bgcolor=ft.colors.WHITE,
             border_radius=12,
-            shadow=ft.BoxShadow(blur_radius=8, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+            shadow=ft.BoxShadow(blur_radius=8, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
         )
 
     # ---------------- DATE PICKERS ----------------
@@ -425,7 +425,7 @@ def crud_view(content, page=None):
         width=500,
         options=[],
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
+        bgcolor=ft.colors.WHITE,
         hint_text="Seleccione un cliente",
     )
 
@@ -434,7 +434,7 @@ def crud_view(content, page=None):
         read_only=True,
         width=240,
         border_radius=8,
-        bgcolor=ft.Colors.GREY_100,
+        bgcolor=ft.colors.GREY_100,
     )
 
     tel_field = ft.TextField(
@@ -442,14 +442,14 @@ def crud_view(content, page=None):
         read_only=True,
         width=200,
         border_radius=8,
-        bgcolor=ft.Colors.GREY_100,
+        bgcolor=ft.colors.GREY_100,
     )
 
     whatsapp_btn = ft.IconButton(
         icon=ft.icons.CHAT,
         icon_color="#25D366",
         tooltip="WhatsApp",
-        bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
+        bgcolor=ft.colors.with_opacity(0.1, ft.colors.GREEN),
         on_click=lambda e: abrir_whatsapp_pedido(),
         width=48,
         height=48,
@@ -459,7 +459,7 @@ def crud_view(content, page=None):
         label="🏙️ Destino (Ciudad)",
         width=240,
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
+        bgcolor=ft.colors.WHITE,
         hint_text="Ej: Asunción",
     )
 
@@ -467,7 +467,7 @@ def crud_view(content, page=None):
         label="📍 Ubicación específica",
         width=260,
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
+        bgcolor=ft.colors.WHITE,
         hint_text="Dirección detallada",
     )
 
@@ -477,7 +477,7 @@ def crud_view(content, page=None):
         read_only=True,
         width=150,
         border_radius=8,
-        bgcolor=ft.Colors.GREY_100,
+        bgcolor=ft.colors.GREY_100,
     )
 
     fecha_entrega = ft.TextField(
@@ -485,7 +485,7 @@ def crud_view(content, page=None):
         read_only=True,
         width=150,
         border_radius=8,
-        bgcolor=ft.Colors.GREY_100,
+        bgcolor=ft.colors.GREY_100,
         hint_text="Opcional",
     )
 
@@ -506,7 +506,7 @@ def crud_view(content, page=None):
         width=120,
         on_change=formatear_delivery_field,
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
+        bgcolor=ft.colors.WHITE,
         prefix_text="Gs. ",
     )
 
@@ -519,7 +519,7 @@ def crud_view(content, page=None):
         ],
         value="Pendiente",
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
+        bgcolor=ft.colors.WHITE,
     )
 
     costo_total = ft.TextField(
@@ -528,7 +528,7 @@ def crud_view(content, page=None):
         read_only=True,
         width=140,
         border_radius=8,
-        bgcolor=ft.Colors.GREY_100,
+        bgcolor=ft.colors.GREY_100,
         text_style=ft.TextStyle(weight="bold", color=PRIMARY_COLOR),
     )
 
@@ -539,7 +539,7 @@ def crud_view(content, page=None):
         width=280,
         on_change=lambda e: mostrar_sugerencias(e.control.value),
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
+        bgcolor=ft.colors.WHITE,
         hint_text="Escriba para buscar...",
     )
 
@@ -555,7 +555,7 @@ def crud_view(content, page=None):
         width=70,
         text_align=ft.TextAlign.CENTER,
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
+        bgcolor=ft.colors.WHITE,
         keyboard_type=ft.KeyboardType.NUMBER,
         label="Cant.",
     )
@@ -584,10 +584,10 @@ def crud_view(content, page=None):
             ft.DataColumn(ft.Text("", weight="bold", color=PRIMARY_COLOR, size=12)),
         ],
         rows=[],
-        border=ft.border.all(1, ft.Colors.GREY_300),
+        border=ft.border.all(1, ft.colors.GREY_300),
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
-        heading_row_color=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+        bgcolor=ft.colors.WHITE,
+        heading_row_color=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
         column_spacing=15,
     )
 
@@ -606,10 +606,10 @@ def crud_view(content, page=None):
             ft.DataColumn(ft.Text("Acciones", weight="bold", color=PRIMARY_COLOR, size=12)),
         ],
         rows=[],
-        border=ft.border.all(1, ft.Colors.GREY_300),
+        border=ft.border.all(1, ft.colors.GREY_300),
         border_radius=8,
-        bgcolor=ft.Colors.WHITE,
-        heading_row_color=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+        bgcolor=ft.colors.WHITE,
+        heading_row_color=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
         column_spacing=5,
     )
 
@@ -745,8 +745,8 @@ def crud_view(content, page=None):
                             dense=True,
                         ),
                         border_radius=6,
-                        bgcolor=ft.Colors.WHITE,
-                        border=ft.border.all(1, ft.Colors.GREY_300),
+                        bgcolor=ft.colors.WHITE,
+                        border=ft.border.all(1, ft.colors.GREY_300),
                         margin=ft.margin.symmetric(vertical=1),
                         ink=True,
                     )
@@ -944,7 +944,7 @@ def crud_view(content, page=None):
                     # Eliminar detalles anteriores
                     cur.execute("DELETE FROM detalle_pedido WHERE pedido_id=%s", (pedido_id,))
                     mensaje = "✏️ Pedido actualizado exitosamente"
-                    color = ft.Colors.BLUE_700
+                    color = ft.colors.BLUE_700
 
                 # Insertar detalles
                 for item in detalle_items:
@@ -1028,7 +1028,7 @@ def crud_view(content, page=None):
                         value=pid in pedidos_seleccionados,
                         on_change=lambda e, pid=pid: toggle_pedido_seleccion(pid, e.control.value),
                         disabled=estado_val != "Pendiente",
-                    ) if estado_val == "Pendiente" else ft.Text("-", size=12, color=ft.Colors.GREY_400)
+                    ) if estado_val == "Pendiente" else ft.Text("-", size=12, color=ft.colors.GREY_400)
 
                     # Formatear fechas
                     fecha_pedido_str = str(fecha_pedido_val)[:10] if fecha_pedido_val else "-"
@@ -1060,7 +1060,7 @@ def crud_view(content, page=None):
                                     ft.Row([
                                         ft.IconButton(
                                             icon=ft.icons.EDIT,
-                                            icon_color=ft.Colors.BLUE,
+                                            icon_color=ft.colors.BLUE,
                                             tooltip="Editar",
                                             on_click=lambda e, pid=pid: editar_pedido(pid),
                                             icon_size=16,
@@ -1147,7 +1147,7 @@ def crud_view(content, page=None):
                     })
 
                 refrescar_detalle()
-                mostrar_snackbar(f"📝 Pedido #{pedido_id} cargado para edición", ft.Colors.BLUE)
+                mostrar_snackbar(f"📝 Pedido #{pedido_id} cargado para edición", ft.colors.BLUE)
 
         except Exception as e:
             print(f"❌ Error editando pedido: {e}")
@@ -1253,7 +1253,7 @@ def crud_view(content, page=None):
                                 ft.Text(f"{i}.", size=16, weight="bold", color=BLUE_COLOR, width=30),
                                 ft.Column([
                                     ft.Text(cliente or "Sin cliente", weight="bold", size=14),
-                                    ft.Text(f"📍 {destino} - {ubicacion}", size=12, color=ft.Colors.GREY_600),
+                                    ft.Text(f"📍 {destino} - {ubicacion}", size=12, color=ft.colors.GREY_600),
                                     ft.Text(f"💰 {format_gs(total or 0)}", size=12, color=PRIMARY_COLOR, weight="bold"),
                                 ], spacing=2, expand=True),
                                 ft.IconButton(
@@ -1486,7 +1486,7 @@ def crud_view(content, page=None):
                     busqueda_pedidos, filtro_estado,
                 ], spacing=8),
                 ft.Row([
-                    ft.Text(f"Seleccionados: {len(pedidos_seleccionados)}", size=12, color=ft.Colors.GREY_600),
+                    ft.Text(f"Seleccionados: {len(pedidos_seleccionados)}", size=12, color=ft.colors.GREY_600),
                     ft.Container(expand=True),
                     calcular_rutas_btn,
                 ], spacing=8),

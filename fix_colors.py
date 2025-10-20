@@ -2,14 +2,14 @@ import os
 import re
 
 def fix_colors_in_file(filepath):
-    """Corrige el uso de ft.colors a ft.Colors"""
+    """Corrige el uso de ft.Colors a ft.colors (Flet 0.24.1 compatibility)"""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Reemplazar ft.colors por ft.Colors
+        # Reemplazar ft.Colors por ft.colors
         original = content
-        content = re.sub(r'ft\.colors\.', 'ft.Colors.', content)
+        content = re.sub(r'ft\.colors\.', 'ft.colors.', content)
         
         if content != original:
             with open(filepath, 'w', encoding='utf-8') as f:

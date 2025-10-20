@@ -709,7 +709,7 @@ def crud_view(content, page=None):
         ], spacing=10),
         padding=20,
         border_radius=15,
-        bgcolor=ft.Colors.with_opacity(0.6, ft.Colors.WHITE),
+        bgcolor=ft.colors.with_opacity(0.6, ft.colors.WHITE),
         shadow=ft.BoxShadow(blur_radius=10, color="#CCC"),
     )
 
@@ -738,7 +738,7 @@ def crud_view(content, page=None):
         expand=True,
         padding=20,
         border_radius=20,
-        bgcolor=ft.Colors.with_opacity(0.7, ft.Colors.WHITE),
+        bgcolor=ft.colors.with_opacity(0.7, ft.colors.WHITE),
         shadow=ft.BoxShadow(blur_radius=12, color="#444"),
         width=950,
     )

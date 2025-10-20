@@ -503,7 +503,7 @@ def crud_view(content, page=None):
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
                 padding=18,
                 border_radius=12,
-                bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+                bgcolor=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
             ),
 
             ft.Divider(height=3, color=PRIMARY_COLOR),
@@ -542,7 +542,7 @@ def crud_view(content, page=None):
                 ]),
                 padding=ft.padding.symmetric(vertical=4, horizontal=8),
                 border_radius=6,
-                bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.GREY) if i % 2 == 0 else None,
+                bgcolor=ft.colors.with_opacity(0.05, ft.colors.GREY) if i % 2 == 0 else None,
             )
             ticket_content.controls.append(producto_row)
 
@@ -566,7 +566,7 @@ def crud_view(content, page=None):
                 ], spacing=8),
                 padding=15,
                 border_radius=10,
-                bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+                bgcolor=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
             ),
 
             ft.Container(height=5),
@@ -602,7 +602,7 @@ def crud_view(content, page=None):
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
                 padding=15,
                 border_radius=10,
-                bgcolor=ft.Colors.with_opacity(0.05, SUCCESS_COLOR),
+                bgcolor=ft.colors.with_opacity(0.05, SUCCESS_COLOR),
             ),
         ])
 
@@ -657,9 +657,9 @@ def crud_view(content, page=None):
                     ),
                     height=520,
                     padding=18,
-                    bgcolor=ft.Colors.WHITE,
+                    bgcolor=ft.colors.WHITE,
                     border_radius=12,
-                    border=ft.border.all(2, ft.Colors.GREY_300),
+                    border=ft.border.all(2, ft.colors.GREY_300),
                 ),
 
                 # Botones de acción
@@ -694,16 +694,16 @@ def crud_view(content, page=None):
             ], spacing=18),
             width=580,
             padding=25,
-            bgcolor=ft.Colors.WHITE,
+            bgcolor=ft.colors.WHITE,
             border_radius=18,
-            shadow=ft.BoxShadow(blur_radius=40, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
+            shadow=ft.BoxShadow(blur_radius=40, color=ft.colors.with_opacity(0.3, ft.colors.BLACK)),
         )
 
         # Crear overlay
         modal_overlay = ft.Container(
             content=ft.Stack([
                 ft.Container(
-                    bgcolor=ft.Colors.with_opacity(0.85, ft.Colors.BLACK),
+                    bgcolor=ft.colors.with_opacity(0.85, ft.colors.BLACK),
                     expand=True,
                     on_click=lambda e: cerrar_ticket()
                 ),
@@ -739,7 +739,7 @@ def crud_view(content, page=None):
         def procesar_apertura():
             try:
                 status_text.value = "⏳ Abriendo caja..."
-                status_text.color = ft.Colors.BLUE
+                status_text.color = ft.colors.BLUE
                 page.update()
 
                 monto_valor = monto_field.value or "0"
@@ -824,13 +824,13 @@ def crud_view(content, page=None):
             width=380,
             padding=25,
             border_radius=18,
-            bgcolor=ft.Colors.WHITE,
-            shadow=ft.BoxShadow(blur_radius=25, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
+            bgcolor=ft.colors.WHITE,
+            shadow=ft.BoxShadow(blur_radius=25, color=ft.colors.with_opacity(0.3, ft.colors.BLACK)),
         )
 
         modal_overlay = ft.Container(
             content=ft.Stack([
-                ft.Container(bgcolor=ft.Colors.with_opacity(0.7, ft.Colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
+                ft.Container(bgcolor=ft.colors.with_opacity(0.7, ft.colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
                 ft.Container(content=modal_content, alignment=ft.alignment.center, expand=True),
             ]),
             expand=True,
@@ -870,7 +870,7 @@ def crud_view(content, page=None):
         def procesar_cierre():
             try:
                 status_text.value = "⏳ Cerrando caja..."
-                status_text.color = ft.Colors.BLUE
+                status_text.color = ft.colors.BLUE
                 page.update()
 
                 monto_str = monto_field.value.replace('₲', '').replace('.', '').replace(',', '').strip()
@@ -939,7 +939,7 @@ def crud_view(content, page=None):
                     ], spacing=4),
                     padding=12,
                     border_radius=8,
-                    bgcolor=ft.Colors.with_opacity(0.1, WARNING_COLOR),
+                    bgcolor=ft.colors.with_opacity(0.1, WARNING_COLOR),
                 ),
 
                 ft.Text("Cuente el dinero físico en caja:", size=14),
@@ -964,13 +964,13 @@ def crud_view(content, page=None):
             width=380,
             padding=25,
             border_radius=18,
-            bgcolor=ft.Colors.WHITE,
-            shadow=ft.BoxShadow(blur_radius=25, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
+            bgcolor=ft.colors.WHITE,
+            shadow=ft.BoxShadow(blur_radius=25, color=ft.colors.with_opacity(0.3, ft.colors.BLACK)),
         )
 
         modal_overlay = ft.Container(
             content=ft.Stack([
-                ft.Container(bgcolor=ft.Colors.with_opacity(0.7, ft.Colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
+                ft.Container(bgcolor=ft.colors.with_opacity(0.7, ft.colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
                 ft.Container(content=modal_content, alignment=ft.alignment.center, expand=True),
             ]),
             expand=True,
@@ -997,10 +997,10 @@ def crud_view(content, page=None):
 
         # Contenedor para datos del cliente
         cliente_info = ft.Container(
-            content=ft.Text("💡 Seleccione un cliente para ver sus datos", size=12, color=ft.Colors.GREY_600),
+            content=ft.Text("💡 Seleccione un cliente para ver sus datos", size=12, color=ft.colors.GREY_600),
             padding=12,
             border_radius=8,
-            bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.GREY),
+            bgcolor=ft.colors.with_opacity(0.05, ft.colors.GREY),
             visible=False,
         )
 
@@ -1072,7 +1072,7 @@ def crud_view(content, page=None):
             """Procesa el pago completo"""
             try:
                 status_text.value = "⏳ Procesando pago..."
-                status_text.color = ft.Colors.BLUE
+                status_text.color = ft.colors.BLUE
                 page.update()
 
                 monto_str = monto_field.value.replace('₲', '').replace('.', '').replace(',', '').strip()
@@ -1165,12 +1165,12 @@ def crud_view(content, page=None):
                 # Total destacado
                 ft.Container(
                     content=ft.Column([
-                        ft.Text("💰 TOTAL A COBRAR", size=16, text_align=ft.TextAlign.CENTER, color=ft.Colors.GREY_700),
+                        ft.Text("💰 TOTAL A COBRAR", size=16, text_align=ft.TextAlign.CENTER, color=ft.colors.GREY_700),
                         ft.Text(f"{formatear_guaranies(total)}", size=24, weight="bold", color=PRIMARY_COLOR, text_align=ft.TextAlign.CENTER),
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
                     padding=18,
                     border_radius=12,
-                    bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+                    bgcolor=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
                     alignment=ft.alignment.center,
                 ),
 
@@ -1185,7 +1185,7 @@ def crud_view(content, page=None):
                     content=vuelto_text,
                     padding=12,
                     border_radius=10,
-                    bgcolor=ft.Colors.with_opacity(0.1, SUCCESS_COLOR),
+                    bgcolor=ft.colors.with_opacity(0.1, SUCCESS_COLOR),
                     alignment=ft.alignment.center,
                 ),
 
@@ -1222,13 +1222,13 @@ def crud_view(content, page=None):
             width=480,
             padding=30,
             border_radius=20,
-            bgcolor=ft.Colors.WHITE,
-            shadow=ft.BoxShadow(blur_radius=30, color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK)),
+            bgcolor=ft.colors.WHITE,
+            shadow=ft.BoxShadow(blur_radius=30, color=ft.colors.with_opacity(0.3, ft.colors.BLACK)),
         )
 
         modal_overlay = ft.Container(
             content=ft.Stack([
-                ft.Container(bgcolor=ft.Colors.with_opacity(0.8, ft.Colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
+                ft.Container(bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLACK), expand=True, on_click=lambda e: cerrar_overlay()),
                 ft.Container(content=modal_content, alignment=ft.alignment.center, expand=True),
             ]),
             expand=True,
@@ -1249,7 +1249,7 @@ def crud_view(content, page=None):
                     icon_size=28,
                     tooltip="Volver al Dashboard",
                     on_click=lambda e: volver_dashboard(),
-                    bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+                    bgcolor=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
                     style=ft.ButtonStyle(shape=ft.CircleBorder()),
                 ),
                 ft.Row([
@@ -1259,13 +1259,13 @@ def crud_view(content, page=None):
                 ft.Container(expand=True),
                 ft.Column([
                     ft.Text(f"Operador: {current_user['nombre_completo']}", size=14, weight="bold"),
-                    ft.Text(datetime.now().strftime("%d/%m/%Y %H:%M"), size=12, color=ft.Colors.GREY_600),
+                    ft.Text(datetime.now().strftime("%d/%m/%Y %H:%M"), size=12, color=ft.colors.GREY_600),
                 ], horizontal_alignment=ft.CrossAxisAlignment.END, spacing=2),
             ], alignment=ft.MainAxisAlignment.START, spacing=12),
             padding=20,
-            bgcolor=ft.Colors.WHITE,
+            bgcolor=ft.colors.WHITE,
             border_radius=12,
-            shadow=ft.BoxShadow(blur_radius=8, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+            shadow=ft.BoxShadow(blur_radius=8, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
         )
 
     def crear_estado_caja():
@@ -1282,7 +1282,7 @@ def crud_view(content, page=None):
                         ft.Icon(ft.icons.CIRCLE, size=16, color=SUCCESS_COLOR),
                         ft.Text("Caja Abierta", size=16, weight="bold", color=SUCCESS_COLOR),
                         ft.Text(f"- Apertura: {formatear_guaranies(sesion_info[1])}", size=14),
-                        ft.Text(f"- {sesion_info[3]}", size=12, color=ft.Colors.GREY_600),
+                        ft.Text(f"- {sesion_info[3]}", size=12, color=ft.colors.GREY_600),
                     ], spacing=8),
                     ft.Container(expand=True),
                     ft.ElevatedButton(
@@ -1296,7 +1296,7 @@ def crud_view(content, page=None):
                 ], alignment=ft.MainAxisAlignment.START, spacing=12),
                 padding=15,
                 border_radius=10,
-                bgcolor=ft.Colors.with_opacity(0.1, SUCCESS_COLOR),
+                bgcolor=ft.colors.with_opacity(0.1, SUCCESS_COLOR),
                 border=ft.border.all(2, SUCCESS_COLOR),
             )
         else:
@@ -1319,7 +1319,7 @@ def crud_view(content, page=None):
                 ], alignment=ft.MainAxisAlignment.START, spacing=12),
                 padding=15,
                 border_radius=10,
-                bgcolor=ft.Colors.with_opacity(0.1, ERROR_COLOR),
+                bgcolor=ft.colors.with_opacity(0.1, ERROR_COLOR),
                 border=ft.border.all(2, ERROR_COLOR),
             )
 
@@ -1332,7 +1332,7 @@ def crud_view(content, page=None):
             prefix_icon=ft.icons.SEARCH,
             height=45,
             border_radius=8,
-            bgcolor=ft.Colors.WHITE,
+            bgcolor=ft.colors.WHITE,
         )
         productos_list = ft.Column([], spacing=8, scroll=ft.ScrollMode.AUTO)
 
@@ -1344,8 +1344,8 @@ def crud_view(content, page=None):
                 productos_list.controls.append(
                     ft.Container(
                         content=ft.Column([
-                            ft.Icon(ft.icons.SEARCH_OFF, size=60, color=ft.Colors.GREY_400),
-                            ft.Text("No hay productos disponibles", color=ft.Colors.GREY_600, size=14),
+                            ft.Icon(ft.icons.SEARCH_OFF, size=60, color=ft.colors.GREY_400),
+                            ft.Text("No hay productos disponibles", color=ft.colors.GREY_600, size=14),
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
                         alignment=ft.alignment.center,
                         height=150,
@@ -1370,7 +1370,7 @@ def crud_view(content, page=None):
                                         content=ft.Row([
                                             ft.Column([
                                                 ft.Text(nombre, weight="bold", size=15, max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
-                                                ft.Text(f"📂 {categoria}", size=12, color=ft.Colors.GREY_600),
+                                                ft.Text(f"📂 {categoria}", size=12, color=ft.colors.GREY_600),
                                                 ft.Row([
                                                     ft.Text(f"💰 {formatear_guaranies(precio)}", size=13, weight="bold", color=PRIMARY_COLOR),
                                                     ft.Text(f"📦 Stock: {stock}", size=12, color=stock_color, weight="bold"),
@@ -1389,10 +1389,10 @@ def crud_view(content, page=None):
                                         ], spacing=10),
                                         padding=12,
                                         border_radius=10,
-                                        bgcolor=ft.Colors.WHITE,
-                                        border=ft.border.all(1, ft.Colors.GREY_300),
+                                        bgcolor=ft.colors.WHITE,
+                                        border=ft.border.all(1, ft.colors.GREY_300),
                                         ink=True,
-                                        shadow=ft.BoxShadow(blur_radius=3, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+                                        shadow=ft.BoxShadow(blur_radius=3, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
                                     )
                                     productos_list.controls.append(producto_card)
 
@@ -1415,9 +1415,9 @@ def crud_view(content, page=None):
                             ], spacing=12),
                             padding=15,
                             border_radius=12,
-                            bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.GREY),
+                            bgcolor=ft.colors.with_opacity(0.02, ft.colors.GREY),
                             expand=True,
-                            shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+                            shadow=ft.BoxShadow(blur_radius=5, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
                         )
 
                     def crear_columna_carrito():
@@ -1440,7 +1440,7 @@ def crud_view(content, page=None):
                             ], spacing=8),
                             padding=15,
                             border_radius=12,
-                            bgcolor=ft.Colors.with_opacity(0.1, PRIMARY_COLOR),
+                            bgcolor=ft.colors.with_opacity(0.1, PRIMARY_COLOR),
                             border=ft.border.all(2, PRIMARY_COLOR),
                         )
 
@@ -1468,9 +1468,9 @@ def crud_view(content, page=None):
                                 carrito_list.controls.append(
                                     ft.Container(
                                         content=ft.Column([
-                                            ft.Icon(ft.icons.SHOPPING_CART_OUTLINED, size=80, color=ft.Colors.GREY_400),
-                                            ft.Text("Carrito vacío", color=ft.Colors.GREY_600, size=18, weight="bold"),
-                                            ft.Text("Agregue productos del catálogo", color=ft.Colors.GREY_500, size=14),
+                                            ft.Icon(ft.icons.SHOPPING_CART_OUTLINED, size=80, color=ft.colors.GREY_400),
+                                            ft.Text("Carrito vacío", color=ft.colors.GREY_600, size=18, weight="bold"),
+                                            ft.Text("Agregue productos del catálogo", color=ft.colors.GREY_500, size=14),
                                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=12),
                                         alignment=ft.alignment.center,
                                         height=200,
@@ -1485,7 +1485,7 @@ def crud_view(content, page=None):
                                         text_align=ft.TextAlign.CENTER,
                                         keyboard_type=ft.KeyboardType.NUMBER,
                                         border_radius=8,
-                                        bgcolor=ft.Colors.WHITE,
+                                        bgcolor=ft.colors.WHITE,
                                         text_size=14,
                                     )
 
@@ -1517,7 +1517,7 @@ def crud_view(content, page=None):
                                             ft.Row([
                                                 ft.Column([
                                                     ft.Text(item['nombre'], weight="bold", size=15, max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
-                                                    ft.Text(f"Precio: {formatear_guaranies(item['precio'])}", size=13, color=ft.Colors.GREY_600),
+                                                    ft.Text(f"Precio: {formatear_guaranies(item['precio'])}", size=13, color=ft.colors.GREY_600),
                                                 ], expand=True, spacing=3),
                                                 ft.IconButton(
                                                     icon=ft.icons.DELETE_OUTLINE,
@@ -1537,9 +1537,9 @@ def crud_view(content, page=None):
                                         ], spacing=8),
                                         padding=15,
                                         border_radius=10,
-                                        bgcolor=ft.Colors.WHITE,
-                                        border=ft.border.all(1, ft.Colors.GREY_300),
-                                        shadow=ft.BoxShadow(blur_radius=3, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+                                        bgcolor=ft.colors.WHITE,
+                                        border=ft.border.all(1, ft.colors.GREY_300),
+                                        shadow=ft.BoxShadow(blur_radius=3, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
                                     )
                                     carrito_list.controls.append(item_card)
 
@@ -1550,7 +1550,7 @@ def crud_view(content, page=None):
 
                             # Actualizar botón
                             pagar_button.disabled = not (carrito_venta and sesion_actual["id"])
-                            pagar_button.bgcolor = SUCCESS_COLOR if not pagar_button.disabled else ft.Colors.GREY_400
+                            pagar_button.bgcolor = SUCCESS_COLOR if not pagar_button.disabled else ft.colors.GREY_400
 
                             page.update()
 
@@ -1571,9 +1571,9 @@ def crud_view(content, page=None):
                             ], spacing=15),
                             padding=15,
                             border_radius=12,
-                            bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.GREY),
+                            bgcolor=ft.colors.with_opacity(0.02, ft.colors.GREY),
                             width=400,
-                            shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+                            shadow=ft.BoxShadow(blur_radius=5, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
                         )
 
                     def crear_columna_ventas():
@@ -1591,9 +1591,9 @@ def crud_view(content, page=None):
                                 ventas_list.controls.append(
                                     ft.Container(
                                         content=ft.Column([
-                                            ft.Icon(ft.icons.RECEIPT_LONG, size=60, color=ft.Colors.GREY_400),
-                                            ft.Text("Sin ventas", color=ft.Colors.GREY_600, size=16, weight="bold"),
-                                            ft.Text("Las ventas aparecerán aquí", color=ft.Colors.GREY_500, size=12),
+                                            ft.Icon(ft.icons.RECEIPT_LONG, size=60, color=ft.colors.GREY_400),
+                                            ft.Text("Sin ventas", color=ft.colors.GREY_600, size=16, weight="bold"),
+                                            ft.Text("Las ventas aparecerán aquí", color=ft.colors.GREY_500, size=12),
                                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
                                         alignment=ft.alignment.center,
                                         height=150,
@@ -1613,23 +1613,23 @@ def crud_view(content, page=None):
                                             ft.Row([
                                                 ft.Column([
                                                     ft.Text(f"#{numero}", weight="bold", size=12, color=PRIMARY_COLOR),
-                                                    ft.Text(f"🕐 {fecha_corta}", size=10, color=ft.Colors.GREY_600),
+                                                    ft.Text(f"🕐 {fecha_corta}", size=10, color=ft.colors.GREY_600),
                                                 ], spacing=2),
                                                 ft.Column([
                                                     ft.Text(formatear_guaranies(total), weight="bold", size=13, text_align=ft.TextAlign.RIGHT),
-                                                    ft.Text(metodo, size=10, color=ft.Colors.GREY_600, text_align=ft.TextAlign.RIGHT),
+                                                    ft.Text(metodo, size=10, color=ft.colors.GREY_600, text_align=ft.TextAlign.RIGHT),
                                                 ], spacing=2, horizontal_alignment=ft.CrossAxisAlignment.END),
                                             ]),
                                             ft.Row([
-                                                ft.Text(f"👤 {cliente or 'Cliente General'}", size=10, color=ft.Colors.GREY_500, expand=True, max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
-                                                ft.Text(f"👨‍💼 {vendedor or 'N/A'}", size=10, color=ft.Colors.GREY_500, text_align=ft.TextAlign.RIGHT),
+                                                ft.Text(f"👤 {cliente or 'Cliente General'}", size=10, color=ft.colors.GREY_500, expand=True, max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
+                                                ft.Text(f"👨‍💼 {vendedor or 'N/A'}", size=10, color=ft.colors.GREY_500, text_align=ft.TextAlign.RIGHT),
                                             ]),
                                         ], spacing=5),
                                         padding=10,
                                         border_radius=8,
-                                        bgcolor=ft.Colors.WHITE,
-                                        border=ft.border.all(1, ft.Colors.GREY_300),
-                                        shadow=ft.BoxShadow(blur_radius=2, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+                                        bgcolor=ft.colors.WHITE,
+                                        border=ft.border.all(1, ft.colors.GREY_300),
+                                        shadow=ft.BoxShadow(blur_radius=2, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
                                     )
                                     ventas_list.controls.append(venta_card)
 
@@ -1652,9 +1652,9 @@ def crud_view(content, page=None):
                             ], spacing=12),
                             padding=15,
                             border_radius=12,
-                            bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.GREY),
+                            bgcolor=ft.colors.with_opacity(0.02, ft.colors.GREY),
                             width=350,
-                            shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+                            shadow=ft.BoxShadow(blur_radius=5, color=ft.colors.with_opacity(0.1, ft.colors.BLACK)),
                         )
 
                     # --- LAYOUT PRINCIPAL DE 3 COLUMNAS ---
@@ -1680,9 +1680,9 @@ def crud_view(content, page=None):
                     else:
                         contenido_principal = ft.Container(
                             content=ft.Column([
-                                ft.Icon(ft.icons.LOCK_OUTLINE, size=100, color=ft.Colors.GREY_400),
-                                ft.Text("Caja Cerrada", size=24, weight="bold", color=ft.Colors.GREY_600),
-                                ft.Text("Debe abrir caja para realizar ventas", size=16, color=ft.Colors.GREY_500),
+                                ft.Icon(ft.icons.LOCK_OUTLINE, size=100, color=ft.colors.GREY_400),
+                                ft.Text("Caja Cerrada", size=24, weight="bold", color=ft.colors.GREY_600),
+                                ft.Text("Debe abrir caja para realizar ventas", size=16, color=ft.colors.GREY_500),
                             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=15),
                             alignment=ft.alignment.center,
                             expand=True,

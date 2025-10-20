@@ -291,7 +291,7 @@ def crud_view(content, page=None):
         width=500,
         padding=25,
         border_radius=20,
-        bgcolor=ft.Colors.with_opacity(0.7, ft.Colors.WHITE),
+        bgcolor=ft.colors.with_opacity(0.7, ft.colors.WHITE),
         shadow=ft.BoxShadow(blur_radius=12, color="#444"),
     )
 
@@ -299,7 +299,7 @@ def crud_view(content, page=None):
         content=ft.Row([filtro_nombre, filtro_ruc], spacing=10),
         padding=10,
         border_radius=10,
-        bgcolor=ft.Colors.with_opacity(0.5, ft.Colors.WHITE),
+        bgcolor=ft.colors.with_opacity(0.5, ft.colors.WHITE),
     )
 
     tabla_card = ft.Container(
@@ -322,7 +322,7 @@ def crud_view(content, page=None):
         expand=True,
         padding=20,
         border_radius=20,
-        bgcolor=ft.Colors.with_opacity(0.7, ft.Colors.WHITE),
+        bgcolor=ft.colors.with_opacity(0.7, ft.colors.WHITE),
         shadow=ft.BoxShadow(blur_radius=12, color="#444"),
         width=650,
     )

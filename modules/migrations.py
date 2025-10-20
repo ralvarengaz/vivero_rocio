@@ -30,7 +30,7 @@ def ensure_schema(db_url):
         """)
         table_exists = cur.fetchone()[0]
         
-        if table_exists and not username_exists:
+        if table_exists and username_exists is None:
             print("⚠️ Detectada tabla usuarios con estructura antigua. Migrando...")
             # Respaldar datos existentes si los hay
             cur.execute("SELECT COUNT(*) FROM usuarios")
@@ -38,11 +38,17 @@ def ensure_schema(db_url):
             
             if user_count > 0:
                 print(f"📦 Respaldando {user_count} usuarios...")
-                cur.execute("""
-                    CREATE TABLE IF NOT EXISTS usuarios_backup AS 
+                # Usar timestamp para evitar conflictos en múltiples migraciones
+                import time
+                timestamp = int(time.time())
+                cur.execute(f"""
+                    CREATE TABLE IF NOT EXISTS usuarios_backup_{timestamp} AS 
                     SELECT * FROM usuarios
                 """)
+                print(f"   Respaldo creado: usuarios_backup_{timestamp}")
             
+            # Advertencia sobre CASCADE
+            print("⚠️ DROP CASCADE eliminará dependencias (foreign keys, permisos_usuario, etc.)")
             # Eliminar tabla antigua
             print("🗑️ Eliminando tabla usuarios antigua...")
             cur.execute("DROP TABLE IF EXISTS usuarios CASCADE")
@@ -72,7 +78,7 @@ def ensure_schema(db_url):
             FROM information_schema.columns 
             WHERE table_name = 'usuarios' AND column_name = 'username'
         """)
-        if cur.fetchone():
+        if cur.fetchone() is not None:
             # Índices para usuarios
             cur.execute("CREATE INDEX IF NOT EXISTS idx_usuarios_username ON usuarios(username);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_usuarios_rol ON usuarios(rol);")

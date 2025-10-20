@@ -19,7 +19,7 @@ from modules import auth
 def main(page: ft.Page):
     page.title = "Vivero Rocío - Sistema de Gestión"
     page.theme_mode = "light"
-    page.window_maximized = True
+    page.window.maximized = True
     page.padding = 0
     page.spacing = 0
     main_content = ft.Column(expand=True)

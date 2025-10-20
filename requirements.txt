@@ -1,7 +1,8 @@
-flet>=0.21.2
-reportlab>=4.2.2
+flet==0.24.1
+reportlab>=4.2.5
 pillow>=10.4.0
 pandas>=2.2.2
 openpyxl>=3.1.5
 matplotlib>=3.9.2
-psycopg2-binary
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0

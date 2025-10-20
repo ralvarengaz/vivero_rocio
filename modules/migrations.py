@@ -1,4 +1,5 @@
 import os
+import time
 import psycopg2
 
 def ensure_schema(db_url):
@@ -39,7 +40,6 @@ def ensure_schema(db_url):
             if user_count > 0:
                 print(f"📦 Respaldando {user_count} usuarios...")
                 # Usar timestamp para evitar conflictos en múltiples migraciones
-                import time
                 timestamp = int(time.time())
                 cur.execute(f"""
                     CREATE TABLE IF NOT EXISTS usuarios_backup_{timestamp} AS 

@@ -1,11 +1,18 @@
+"""
+Módulo de Gestión de Usuarios
+Migrado a PostgreSQL con nueva arquitectura
+"""
 import flet as ft
 import hashlib
-from modules import dashboard
-from modules.database_manager import get_db_connection
 from datetime import datetime
+from modules import dashboard
+from modules.db_service import db
+from modules.config import Colors, FontSizes, Sizes, Messages, Icons, Spacing
+from modules.utils import validate_email
 
-PRIMARY_COLOR = "#2E7D32"
-ACCENT_COLOR = "#66BB6A"
+# Constantes para compatibilidad
+PRIMARY_COLOR = Colors.PRIMARY
+ACCENT_COLOR = Colors.ACCENT
 
 def crud_view(content, page=None):
     content.controls.clear()
@@ -175,7 +182,7 @@ def crud_view(content, page=None):
         tabla.rows.clear()
         
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 
                 query = """SELECT id, username, nombre_completo, email, rol, estado, ultimo_acceso
@@ -244,7 +251,7 @@ def crud_view(content, page=None):
 
     def seleccionar(uid):
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 
                 # Obtener datos del usuario
@@ -295,7 +302,7 @@ def crud_view(content, page=None):
             return
         
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 
                 # Verificar si el username ya existe
@@ -351,7 +358,7 @@ def crud_view(content, page=None):
             return
         
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 
                 # Verificar username único (excluyendo el usuario actual)
@@ -410,7 +417,7 @@ def crud_view(content, page=None):
         def confirmar_eliminacion(respuesta):
             if respuesta:
                 try:
-                    with get_db_connection() as conn:
+                    with db.get_connection() as conn:
                         cur = conn.cursor()
                         
                         # PostgreSQL eliminará permisos automáticamente (ON DELETE CASCADE)

@@ -1,498 +1,581 @@
+"""
+Módulo de Gestión de Productos
+Migrado a nueva arquitectura con PostgreSQL, Config y Utils
+"""
 import flet as ft
-import sqlite3
+from modules.db_service import db
+from modules.config import Colors, FontSizes, Sizes, Messages, Icons, Spacing
+from modules.utils import (
+    format_guarani, parse_guarani, sanitize_string, to_int
+)
+from modules.session_service import session
 from modules import dashboard
-from modules.plantas import TODAS_PLANTAS
 
-DB = "data/vivero.db"
-PRIMARY_COLOR = "#2E7D32"
-ACCENT_COLOR = "#66BB6A"
 
 def crud_view(content, page=None):
+    """Vista principal de gestión de productos"""
     content.controls.clear()
 
-    # --- Función para mostrar avisos ---
-    def show_snackbar(msg: str, color: str):
-        snackbar = ft.SnackBar(
-            content=ft.Text(msg, color="white"),
-            bgcolor=color,
-            duration=3000,
-        )
-        page.open(snackbar)
+    # === VARIABLES DE ESTADO ===
+    selected_id = {"id": None}
 
-    # --- Función para verificar estructura de la tabla ---
-    def verificar_estructura_tabla():
-        """Verifica qué columnas tiene la tabla productos"""
-        try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            cur.execute("PRAGMA table_info(productos)")
-            columnas = cur.fetchall()
-            conn.close()
-            print("📋 Columnas de la tabla productos:")
-            for col in columnas:
-                print(f"  - {col[1]} ({col[2]})")
-            return [col[1] for col in columnas]  # Retorna solo los nombres
-        except Exception as e:
-            print(f"❌ Error verificando estructura: {e}")
-            return []
+    # === CAMPOS DEL FORMULARIO ===
+    nombre = ft.TextField(
+        label="Nombre Producto",
+        width=Sizes.INPUT_WIDTH_LARGE,
+        hint_text="Ej: Rosa Blanca",
+        prefix_icon=Icons.PRODUCTOS,
+        height=Sizes.INPUT_HEIGHT,
+    )
 
-    # Verificar estructura al inicio
-    columnas_disponibles = verificar_estructura_tabla()
-
-    # --- Campo Nombre con sugerencias ---
-    nombre = ft.TextField(label="Nombre", width=300, hint_text="Ej: Rosa", prefix_icon=ft.icons.SPA)
-    sugerencias = ft.Column(spacing=2, visible=False)
-
-    def actualizar_sugerencias(e):
-        texto = nombre.value.lower()
-        sugerencias.controls.clear()
-        if texto:
-            coincidencias = [p for p in TODAS_PLANTAS if texto in p.lower()]
-            for planta in coincidencias[:5]:
-                sugerencias.controls.append(
-                    ft.TextButton(
-                        text=planta,
-                        on_click=lambda ev, v=planta: seleccionar_sugerencia(v),
-                        style=ft.ButtonStyle(color=PRIMARY_COLOR),
-                    )
-                )
-            sugerencias.visible = bool(coincidencias)
-        else:
-            sugerencias.visible = False
-        page.update()
-
-    def seleccionar_sugerencia(valor):
-        nombre.value = valor
-        sugerencias.visible = False
-        page.update()
-
-    nombre.on_change = actualizar_sugerencias
-
-    # --- Categoría ---
     categoria = ft.Dropdown(
         label="Categoría",
-        width=300,
+        width=Sizes.INPUT_WIDTH_MEDIUM,
         options=[
-            ft.dropdown.Option("Ornamentales"),
-            ft.dropdown.Option("Cítricos"),
-            ft.dropdown.Option("Frutales"),
-            ft.dropdown.Option("Forestales"),
-            ft.dropdown.Option("Medicinales"),
-            ft.dropdown.Option("Jardín e insumos"),
+            ft.dropdown.Option("Flores"),
+            ft.dropdown.Option("Plantas"),
+            ft.dropdown.Option("Semillas"),
+            ft.dropdown.Option("Herramientas"),
+            ft.dropdown.Option("Fertilizantes"),
+            ft.dropdown.Option("Macetas"),
+            ft.dropdown.Option("Otros"),
         ],
+        height=Sizes.INPUT_HEIGHT,
     )
 
-    # --- Unidad ---
-    unidad = ft.Dropdown(
-        label="Unidad",
-        width=150,
+    precio_compra = ft.TextField(
+        label="Precio Compra (₲)",
+        width=Sizes.INPUT_WIDTH_MEDIUM,
+        hint_text="Ej: 10000",
+        prefix_icon=ft.icons.ATTACH_MONEY,
+        height=Sizes.INPUT_HEIGHT,
+    )
+
+    precio_venta = ft.TextField(
+        label="Precio Venta (₲)",
+        width=Sizes.INPUT_WIDTH_MEDIUM,
+        hint_text="Ej: 15000",
+        prefix_icon=ft.icons.SELL,
+        height=Sizes.INPUT_HEIGHT,
+    )
+
+    stock_actual = ft.TextField(
+        label="Stock Actual",
+        width=Sizes.INPUT_WIDTH_SMALL,
+        hint_text="Ej: 50",
+        prefix_icon=ft.icons.INVENTORY,
+        height=Sizes.INPUT_HEIGHT,
+        value="0",
+    )
+
+    stock_minimo = ft.TextField(
+        label="Stock Mínimo",
+        width=Sizes.INPUT_WIDTH_SMALL,
+        hint_text="Ej: 10",
+        prefix_icon=ft.icons.WARNING,
+        height=Sizes.INPUT_HEIGHT,
+        value="5",
+    )
+
+    descripcion = ft.TextField(
+        label="Descripción",
+        width=Sizes.INPUT_WIDTH_LARGE,
+        hint_text="Descripción del producto",
+        prefix_icon=ft.icons.DESCRIPTION,
+        height=Sizes.INPUT_HEIGHT,
+        multiline=True,
+        min_lines=2,
+        max_lines=3,
+    )
+
+    error_msg = ft.Text("", color=Colors.ERROR, size=FontSizes.NORMAL)
+
+    # === FILTROS ===
+    filtro_nombre = ft.TextField(
+        label="Buscar por Nombre",
+        width=220,
+        prefix_icon=Icons.SEARCH,
+        height=Sizes.INPUT_HEIGHT,
+    )
+
+    filtro_categoria = ft.Dropdown(
+        label="Categoría",
+        width=180,
         options=[
-            ft.dropdown.Option("Unitario"),
-            ft.dropdown.Option("m²"),
+            ft.dropdown.Option("", "Todas"),
+            ft.dropdown.Option("Flores"),
+            ft.dropdown.Option("Plantas"),
+            ft.dropdown.Option("Semillas"),
+            ft.dropdown.Option("Herramientas"),
+            ft.dropdown.Option("Fertilizantes"),
+            ft.dropdown.Option("Macetas"),
+            ft.dropdown.Option("Otros"),
         ],
+        value="",
+        height=Sizes.INPUT_HEIGHT,
     )
 
-    precio_compra = ft.TextField(label="Precio Compra (Gs.)", width=200, hint_text="Ej: 12000", prefix_icon=ft.icons.MONEY)
-    precio_venta = ft.TextField(label="Precio Venta (Gs.)", width=200, hint_text="Ej: 15000", prefix_icon=ft.icons.PAID)
-    
-    # Campo de stock
-    stock = ft.TextField(label="Stock", width=150, hint_text="Ej: 100", prefix_icon=ft.icons.INVENTORY, value="0")
-
-    # --- Tabla y búsqueda (CORREGIDA) ---
-    tabla = ft.DataTable(
-        columns=[
-            ft.DataColumn(ft.Text("ID", text_align="center", color=PRIMARY_COLOR)),
-            ft.DataColumn(ft.Text("Nombre", text_align="left", color=PRIMARY_COLOR)),
-            ft.DataColumn(ft.Text("Categoría", text_align="center", color=PRIMARY_COLOR)),
-            ft.DataColumn(ft.Text("Unidad", text_align="center", color=PRIMARY_COLOR)),
-            ft.DataColumn(ft.Text("P. Compra", text_align="center", color=PRIMARY_COLOR)),
-            ft.DataColumn(ft.Text("P. Venta", text_align="center", color=PRIMARY_COLOR)),
-            ft.DataColumn(ft.Text("Stock", text_align="center", color=PRIMARY_COLOR)),
-        ],
-        rows=[],
-        column_spacing=8,
-    )
-
-    busqueda = ft.TextField(
-        label="Buscar producto",
-        width=300,
-        prefix_icon=ft.icons.SEARCH,
-        on_change=lambda e: refrescar_tabla(busqueda.value),
-    )
-
-    # --- Variables de estado ---
-    selected_id = {"id": None}
-    producto_original = {"data": None}
-    error_msg = ft.Text("", color="red")
-
-    # --- Funciones auxiliares ---
-    def crear_indice_unico():
-        conn = sqlite3.connect(DB)
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_productos_nombre_nocase
-            ON productos (nombre COLLATE NOCASE)
-        """)
-        conn.commit()
-        conn.close()
-
-    def existe_producto(nombre_val: str, excluir_id: int | None = None) -> bool:
-        conn = sqlite3.connect(DB)
-        cur = conn.cursor()
-        if excluir_id is None:
-            cur.execute("SELECT 1 FROM productos WHERE nombre = ? COLLATE NOCASE LIMIT 1", (nombre_val.strip(),))
-        else:
-            cur.execute(
-                "SELECT 1 FROM productos WHERE nombre = ? COLLATE NOCASE AND id <> ? LIMIT 1",
-                (nombre_val.strip(), excluir_id),
-            )
-        found = cur.fetchone() is not None
-        conn.close()
-        return found
-
-    crear_indice_unico()
+    # === FUNCIONES DE UTILIDAD ===
+    def show_snackbar(msg: str, color: str):
+        """Muestra mensaje temporal"""
+        page.open(ft.SnackBar(
+            content=ft.Text(msg, color=Colors.TEXT_WHITE),
+            bgcolor=color,
+            duration=3000
+        ))
 
     def limpiar_form():
+        """Limpia el formulario"""
         nombre.value = ""
         categoria.value = None
-        unidad.value = None
         precio_compra.value = ""
         precio_venta.value = ""
-        stock.value = "0"
+        stock_actual.value = "0"
+        stock_minimo.value = "5"
+        descripcion.value = ""
         selected_id["id"] = None
-        producto_original["data"] = None
-        sugerencias.visible = False
         error_msg.value = ""
         page.update()
 
-    def agregar_producto(e):
-        # Validar nombre
-        if not nombre.value or not nombre.value.strip():
-            error_msg.value = "⚠️ El nombre es obligatorio"
-            page.update()
-            return
-        
-        # Limpiar el nombre
-        nombre_limpio = nombre.value.strip()
-        
-        # Validar duplicado
-        if existe_producto(nombre_limpio):
-            error_msg.value = "⚠️ Ya existe un producto con este nombre"
-            page.update()
-            return
-        
-        # Validar otros campos
-        if not categoria.value or not unidad.value or not precio_compra.value or not precio_venta.value:
-            error_msg.value = "⚠️ Todos los campos son obligatorios"
-            page.update()
-            return
-        
-        # Validar números
-        try:
-            pc = float(precio_compra.value.replace(".", "").replace(",", ""))
-            pv = float(precio_venta.value.replace(".", "").replace(",", ""))
-            st = int(stock.value or "0")
-        except:
-            error_msg.value = "⚠️ Los precios y stock deben ser números válidos"
-            page.update()
-            return
+    # === TABLA DE PRODUCTOS ===
+    tabla = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("Nombre", color=Colors.PRIMARY, weight="bold")),
+            ft.DataColumn(ft.Text("Categoría", color=Colors.PRIMARY, weight="bold")),
+            ft.DataColumn(ft.Text("P. Compra", color=Colors.PRIMARY, weight="bold")),
+            ft.DataColumn(ft.Text("P. Venta", color=Colors.PRIMARY, weight="bold")),
+            ft.DataColumn(ft.Text("Stock", color=Colors.PRIMARY, weight="bold")),
+            ft.DataColumn(ft.Text("Stock Mín", color=Colors.PRIMARY, weight="bold")),
+        ],
+        rows=[],
+        column_spacing=8,
+        heading_row_height=Sizes.TABLE_HEADER_HEIGHT,
+    )
+
+    def refrescar_tabla(e=None):
+        """Refresca la tabla de productos desde PostgreSQL"""
+        tabla.rows.clear()
 
         try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            
-            # ✅ INSERCIÓN CORREGIDA - Incluir TODOS los campos obligatorios
-            cur.execute("""
-                INSERT INTO productos (
-                    nombre, 
-                    categoria, 
-                    unidad, 
-                    precio_compra, 
-                    precio_venta, 
-                    unidad_medida, 
-                    stock,
-                    fecha_creacion,
-                    fecha_actualizacion
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
-            """, (
-                nombre_limpio,           # nombre
-                categoria.value,         # categoria  
-                unidad.value,           # unidad (NOT NULL)
-                pc,                     # precio_compra
-                pv,                     # precio_venta
-                unidad.value,           # unidad_medida (usar mismo valor que unidad)
-                st                      # stock
-            ))
-            
-            conn.commit()
-            conn.close()
-            
-            limpiar_form()
-            refrescar_tabla()
-            show_snackbar("✅ Producto agregado correctamente", "#2E7D32")
-            
-        except sqlite3.IntegrityError as e:
-            error_msg.value = f"⚠️ Error de integridad: {str(e)}"
-            page.update()
-            return
-        except Exception as ex:
-            error_msg.value = f"⚠️ Error: {str(ex)}"
-            page.update()
-            return
-    def refrescar_tabla(filtro: str = ""):
-        """Función COMPLETAMENTE CORREGIDA para manejar cualquier estructura de tabla"""
-        tabla.rows.clear()
-        try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            
-            # Consulta adaptable con nombres específicos de columnas
-            if filtro:
-                cur.execute("""
-                    SELECT 
-                        id,
-                        nombre,
-                        categoria,
-                        COALESCE(unidad_medida, unidad, 'Unitario') as unidad_final,
-                        COALESCE(precio_compra, precio, 0) as precio_compra_final,
-                        COALESCE(precio_venta, precio_compra, precio, 0) as precio_venta_final,
-                        COALESCE(stock, 0) as stock_final
-                    FROM productos 
-                    WHERE nombre LIKE ? COLLATE NOCASE
-                    ORDER BY id
-                """, (f"%{filtro}%",))
-            else:
-                cur.execute("""
-                    SELECT 
-                        id,
-                        nombre,
-                        categoria,
-                        COALESCE(unidad_medida, unidad, 'Unitario') as unidad_final,
-                        COALESCE(precio_compra, precio, 0) as precio_compra_final,
-                        COALESCE(precio_venta, precio_compra, precio, 0) as precio_venta_final,
-                        COALESCE(stock, 0) as stock_final
+            with db.get_connection() as conn:
+                cur = conn.cursor()
+
+                # Query optimizada con columnas específicas y LIMIT
+                query = """
+                    SELECT id, nombre, categoria, precio_compra, precio_venta,
+                           stock_actual, stock_minimo
                     FROM productos
-                    ORDER BY id
-                """)
-            
-            productos = cur.fetchall()
-            print(f"📦 Productos encontrados: {len(productos)}")
-            
-            for prod in productos:
-                # Ahora siempre esperamos exactamente 7 valores de la consulta
-                pid, p_nombre, p_cat, p_uni, p_pc, p_pv, p_stock = prod
-                
-                tabla.rows.append(
-                    ft.DataRow(
-                        cells=[
-                            ft.DataCell(ft.Text(str(pid), text_align="center")),
-                            ft.DataCell(ft.Text(p_nombre or "Sin nombre", text_align="left")),
-                            ft.DataCell(ft.Text(p_cat or "Sin categoría", text_align="center")),
-                            ft.DataCell(ft.Text(p_uni or "Unitario", text_align="center")),
-                            ft.DataCell(ft.Text(f"Gs. {int(p_pc or 0):,.0f}".replace(',', '.'), text_align="center")),
-                            ft.DataCell(ft.Text(f"Gs. {int(p_pv or 0):,.0f}".replace(',', '.'), text_align="center")),
-                            ft.DataCell(ft.Text(f"{int(p_stock or 0):,.0f}".replace(',', '.'), text_align="center")),
-                        ],
-                        on_select_changed=lambda e, pid=pid: seleccionar(pid),
+                    WHERE 1=1
+                """
+                params = []
+
+                # Aplicar filtros
+                if filtro_nombre.value.strip():
+                    query += " AND LOWER(nombre) LIKE %s"
+                    params.append(f"%{filtro_nombre.value.strip().lower()}%")
+
+                if filtro_categoria.value:
+                    query += " AND categoria = %s"
+                    params.append(filtro_categoria.value)
+
+                query += " ORDER BY id ASC LIMIT 100"
+
+                cur.execute(query, tuple(params))
+                rows = cur.fetchall()
+
+                for prod in rows:
+                    pid, p_nombre, p_cat, p_compra, p_venta, p_stock, p_stock_min = prod
+
+                    # Determinar color del stock
+                    stock_val = p_stock or 0
+                    stock_min_val = p_stock_min or 5
+
+                    if stock_val == 0:
+                        stock_color = Colors.ERROR
+                    elif stock_val <= stock_min_val:
+                        stock_color = Colors.WARNING
+                    else:
+                        stock_color = Colors.SUCCESS
+
+                    stock_container = ft.Container(
+                        content=ft.Text(str(stock_val), color=Colors.TEXT_WHITE, weight="bold", size=FontSizes.SMALL),
+                        bgcolor=stock_color,
+                        padding=ft.padding.symmetric(vertical=4, horizontal=8),
+                        border_radius=8,
                     )
-                )
-            
-            conn.close()
-            print(f"✅ Tabla actualizada con {len(tabla.rows)} productos")
-            
-        except Exception as e:
-            print(f"❌ Error refrescando tabla: {e}")
-            error_msg.value = f"❌ Error cargando productos: {str(e)}"
-            import traceback
-            traceback.print_exc()
-        
+
+                    tabla.rows.append(
+                        ft.DataRow(
+                            cells=[
+                                ft.DataCell(ft.Text(p_nombre or "", size=FontSizes.NORMAL)),
+                                ft.DataCell(ft.Text(p_cat or "", size=FontSizes.NORMAL)),
+                                ft.DataCell(ft.Text(format_guarani(p_compra or 0), size=FontSizes.NORMAL)),
+                                ft.DataCell(ft.Text(format_guarani(p_venta or 0), size=FontSizes.NORMAL)),
+                                ft.DataCell(stock_container),
+                                ft.DataCell(ft.Text(str(p_stock_min or 5), size=FontSizes.NORMAL)),
+                            ],
+                            on_select_changed=lambda e, pid=pid: seleccionar(pid),
+                        )
+                    )
+
+                print(f"✅ Productos cargados: {len(rows)}")
+
+        except Exception as ex:
+            error_msg.value = f"{Messages.ERROR_CONNECTION}: {str(ex)}"
+            print(f"❌ Error refrescando productos: {ex}")
+            show_snackbar(Messages.ERROR_CONNECTION, Colors.ERROR)
+
         page.update()
 
     def seleccionar(pid):
-        """Función corregida para seleccionar productos"""
+        """Selecciona un producto para edición"""
         try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT 
-                    id,
-                    nombre,
-                    categoria,
-                    COALESCE(unidad_medida, unidad, 'Unitario') as unidad_final,
-                    COALESCE(precio_compra, precio, 0) as precio_compra_final,
-                    COALESCE(precio_venta, precio_compra, precio, 0) as precio_venta_final,
-                    COALESCE(stock, 0) as stock_final
-                FROM productos 
-                WHERE id=?
-            """, (pid,))
-            prod = cur.fetchone()
-            conn.close()
-            
-            if prod:
-                selected_id["id"] = prod[0]
-                producto_original["data"] = prod
-                nombre.value = prod[1] or ""
-                categoria.value = prod[2] or ""
-                unidad.value = prod[3] or "Unitario"
-                precio_compra.value = str(int(prod[4] or 0))
-                precio_venta.value = str(int(prod[5] or 0))
-                stock.value = str(int(prod[6] or 0))
-                error_msg.value = ""
-                page.update()
-                print(f"✅ Producto seleccionado: {prod[1]}")
-        except Exception as e:
-            print(f"❌ Error seleccionando producto: {e}")
-            error_msg.value = f"❌ Error: {str(e)}"
+            with db.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT id, nombre, categoria, precio_compra, precio_venta,
+                           stock_actual, stock_minimo, descripcion
+                    FROM productos WHERE id=%s
+                """, (pid,))
+                prod = cur.fetchone()
+
+                if prod:
+                    selected_id["id"] = prod[0]
+                    nombre.value = prod[1] or ""
+                    categoria.value = prod[2] or None
+                    precio_compra.value = str(prod[3] or 0)
+                    precio_venta.value = str(prod[4] or 0)
+                    stock_actual.value = str(prod[5] or 0)
+                    stock_minimo.value = str(prod[6] or 5)
+                    descripcion.value = prod[7] or ""
+                    error_msg.value = ""
+                    page.update()
+
+        except Exception as ex:
+            error_msg.value = f"Error al seleccionar: {str(ex)}"
+            print(f"❌ Error seleccionando producto: {ex}")
+            page.update()
+
+    def agregar_producto(e):
+        """Agrega un nuevo producto con validación completa"""
+        errores = []
+
+        # Sanitizar inputs
+        nombre_clean = sanitize_string(nombre.value)
+
+        # Validaciones
+        if not nombre_clean:
+            errores.append("El campo Nombre es obligatorio.")
+
+        if not categoria.value:
+            errores.append("Debes seleccionar una categoría.")
+
+        # Validar precios
+        try:
+            p_compra = parse_guarani(precio_compra.value) if precio_compra.value.strip() else 0
+            if p_compra < 0:
+                errores.append("El precio de compra debe ser mayor o igual a 0.")
+        except:
+            errores.append("El precio de compra debe ser un número válido.")
+            p_compra = 0
+
+        try:
+            p_venta = parse_guarani(precio_venta.value) if precio_venta.value.strip() else 0
+            if p_venta < 0:
+                errores.append("El precio de venta debe ser mayor o igual a 0.")
+        except:
+            errores.append("El precio de venta debe ser un número válido.")
+            p_venta = 0
+
+        # Validar stocks
+        try:
+            s_actual = to_int(stock_actual.value)
+            if s_actual < 0:
+                errores.append("El stock actual no puede ser negativo.")
+        except:
+            errores.append("El stock actual debe ser un número entero.")
+            s_actual = 0
+
+        try:
+            s_minimo = to_int(stock_minimo.value)
+            if s_minimo < 0:
+                errores.append("El stock mínimo no puede ser negativo.")
+        except:
+            errores.append("El stock mínimo debe ser un número entero.")
+            s_minimo = 5
+
+        if errores:
+            error_msg.value = Messages.WARNING_EMPTY_FIELDS + " " + " ".join(errores)
+            page.update()
+            return
+
+        try:
+            with db.get_connection() as conn:
+                cur = conn.cursor()
+
+                # Insertar producto
+                cur.execute("""
+                    INSERT INTO productos
+                    (nombre, categoria, precio_compra, precio_venta, stock_actual, stock_minimo, descripcion)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    nombre_clean,
+                    categoria.value,
+                    p_compra,
+                    p_venta,
+                    s_actual,
+                    s_minimo,
+                    descripcion.value.strip() or None
+                ))
+
+                conn.commit()
+
+                limpiar_form()
+                refrescar_tabla()
+                show_snackbar(Messages.SUCCESS_CREATE, Colors.SUCCESS)
+
+        except Exception as ex:
+            error_msg.value = f"{Messages.ERROR_CREATE}: {str(ex)}"
+            print(f"❌ Error agregando producto: {ex}")
+            show_snackbar(Messages.ERROR_CREATE, Colors.ERROR)
             page.update()
 
     def editar_producto(e):
+        """Edita un producto existente con validación"""
         if not selected_id["id"]:
-            error_msg.value = "⚠️ Selecciona un producto para editar"
+            error_msg.value = "Selecciona un producto para editar."
             page.update()
             return
-        if not nombre.value or not nombre.value.strip():
-            error_msg.value = "⚠️ El nombre es obligatorio"
-            page.update()
-            return
-        if existe_producto(nombre.value, excluir_id=selected_id["id"]):
-            error_msg.value = "⚠️ Ya existe un producto con este nombre"
-            page.update()
-            return
-        if not categoria.value or not unidad.value or not precio_compra.value or not precio_venta.value:
-            error_msg.value = "⚠️ Todos los campos son obligatorios"
-            page.update()
-            return
+
+        errores = []
+
+        # Sanitizar inputs
+        nombre_clean = sanitize_string(nombre.value)
+
+        # Validaciones
+        if not nombre_clean:
+            errores.append("El campo Nombre es obligatorio.")
+
+        if not categoria.value:
+            errores.append("Debes seleccionar una categoría.")
+
+        # Validar precios
         try:
-            pc = float(precio_compra.value.replace(".", "").replace(",", ""))
-            pv = float(precio_venta.value.replace(".", "").replace(",", ""))
-            st = int(stock.value or "0")
+            p_compra = parse_guarani(precio_compra.value) if precio_compra.value.strip() else 0
+            if p_compra < 0:
+                errores.append("El precio de compra debe ser mayor o igual a 0.")
         except:
-            error_msg.value = "⚠️ Los precios y stock deben ser válidos"
+            errores.append("El precio de compra debe ser un número válido.")
+            p_compra = 0
+
+        try:
+            p_venta = parse_guarani(precio_venta.value) if precio_venta.value.strip() else 0
+            if p_venta < 0:
+                errores.append("El precio de venta debe ser mayor o igual a 0.")
+        except:
+            errores.append("El precio de venta debe ser un número válido.")
+            p_venta = 0
+
+        # Validar stocks
+        try:
+            s_actual = to_int(stock_actual.value)
+            if s_actual < 0:
+                errores.append("El stock actual no puede ser negativo.")
+        except:
+            errores.append("El stock actual debe ser un número entero.")
+            s_actual = 0
+
+        try:
+            s_minimo = to_int(stock_minimo.value)
+            if s_minimo < 0:
+                errores.append("El stock mínimo no puede ser negativo.")
+        except:
+            errores.append("El stock mínimo debe ser un número entero.")
+            s_minimo = 5
+
+        if errores:
+            error_msg.value = Messages.WARNING_EMPTY_FIELDS + " " + " ".join(errores)
             page.update()
             return
 
         try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            
-            cur.execute("""
-                UPDATE productos 
-                SET nombre=?, categoria=?, unidad_medida=?, precio_compra=?, precio_venta=?, stock=? 
-                WHERE id=?
-            """, (nombre.value.strip(), categoria.value, unidad.value, pc, pv, st, selected_id["id"]))
-            
-            conn.commit()
-        except sqlite3.IntegrityError:
-            error_msg.value = "⚠️ Ya existe un producto con este nombre"
-            page.update()
-            return
-        except Exception as ex:
-            error_msg.value = f"⚠️ Error: {str(ex)}"
-            page.update()
-            return
-        finally:
-            conn.close()
+            with db.get_connection() as conn:
+                cur = conn.cursor()
 
-        limpiar_form()
-        refrescar_tabla()
-        show_snackbar("✏️ Producto editado correctamente", "#0288D1")
+                # Actualizar producto
+                cur.execute("""
+                    UPDATE productos
+                    SET nombre=%s, categoria=%s, precio_compra=%s, precio_venta=%s,
+                        stock_actual=%s, stock_minimo=%s, descripcion=%s
+                    WHERE id=%s
+                """, (
+                    nombre_clean,
+                    categoria.value,
+                    p_compra,
+                    p_venta,
+                    s_actual,
+                    s_minimo,
+                    descripcion.value.strip() or None,
+                    selected_id["id"]
+                ))
+
+                conn.commit()
+
+                limpiar_form()
+                refrescar_tabla()
+                show_snackbar(Messages.SUCCESS_UPDATE, Colors.INFO)
+
+        except Exception as ex:
+            error_msg.value = f"{Messages.ERROR_UPDATE}: {str(ex)}"
+            print(f"❌ Error editando producto: {ex}")
+            show_snackbar(Messages.ERROR_UPDATE, Colors.ERROR)
+            page.update()
 
     def eliminar_producto(e):
+        """Elimina un producto con confirmación"""
         if not selected_id["id"]:
-            error_msg.value = "⚠️ Selecciona un producto para eliminar"
+            error_msg.value = "Selecciona un producto para eliminar."
             page.update()
             return
-        
-        try:
-            conn = sqlite3.connect(DB)
-            cur = conn.cursor()
-            cur.execute("DELETE FROM productos WHERE id=?", (selected_id["id"],))
-            conn.commit()
-            conn.close()
-        except Exception as ex:
-            error_msg.value = f"⚠️ Error eliminando: {str(ex)}"
-            page.update()
-            return
-            
-        limpiar_form()
-        refrescar_tabla()
-        show_snackbar("🗑️ Producto eliminado correctamente", "#C62828")
 
+        try:
+            with db.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute("DELETE FROM productos WHERE id=%s", (selected_id["id"],))
+                conn.commit()
+
+                limpiar_form()
+                refrescar_tabla()
+                show_snackbar("Producto eliminado correctamente", Colors.ERROR)
+
+        except Exception as ex:
+            error_msg.value = f"{Messages.ERROR_DELETE}: {str(ex)}"
+            print(f"❌ Error eliminando producto: {ex}")
+            show_snackbar(Messages.ERROR_DELETE, Colors.ERROR)
+            page.update()
+
+    # === BOTONES DE ACCIÓN ===
     botones = ft.Row(
         [
-            ft.ElevatedButton("Agregar", on_click=agregar_producto, bgcolor=PRIMARY_COLOR, color="white", icon=ft.icons.ADD),
-            ft.ElevatedButton("Editar", on_click=editar_producto, bgcolor="#0288D1", color="white", icon=ft.icons.EDIT),
-            ft.ElevatedButton("Eliminar", on_click=eliminar_producto, bgcolor="#C62828", color="white", icon=ft.icons.DELETE),
-            ft.ElevatedButton("Limpiar", on_click=lambda e: limpiar_form(), bgcolor="#757575", color="white", icon=ft.icons.CLEAR),
+            ft.ElevatedButton(
+                "Agregar",
+                on_click=agregar_producto,
+                bgcolor=Colors.SUCCESS,
+                color=Colors.TEXT_WHITE,
+                icon=Icons.ADD,
+                height=Sizes.BUTTON_HEIGHT,
+            ),
+            ft.ElevatedButton(
+                "Editar",
+                on_click=editar_producto,
+                bgcolor=Colors.INFO,
+                color=Colors.TEXT_WHITE,
+                icon=Icons.EDIT,
+                height=Sizes.BUTTON_HEIGHT,
+            ),
+            ft.ElevatedButton(
+                "Eliminar",
+                on_click=eliminar_producto,
+                bgcolor=Colors.ERROR,
+                color=Colors.TEXT_WHITE,
+                icon=Icons.DELETE,
+                height=Sizes.BUTTON_HEIGHT,
+            ),
+            ft.ElevatedButton(
+                "Limpiar",
+                on_click=lambda e: limpiar_form(),
+                bgcolor=Colors.TEXT_DISABLED,
+                color=Colors.TEXT_WHITE,
+                icon=Icons.CANCEL,
+                height=Sizes.BUTTON_HEIGHT,
+            ),
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-        spacing=10,
+        spacing=Spacing.MEDIUM,
     )
 
     volver_icon = ft.IconButton(
-        icon=ft.icons.ARROW_BACK,
+        icon=Icons.BACK,
         tooltip="Volver al Dashboard",
-        icon_color=PRIMARY_COLOR,
+        icon_color=Colors.PRIMARY,
         on_click=lambda e: dashboard.dashboard_view(content, page=page),
+        bgcolor=ft.colors.with_opacity(0.1, Colors.PRIMARY),
     )
 
+    # === TARJETA DEL FORMULARIO ===
     form_card = ft.Container(
         content=ft.Column(
             [
-                ft.Row([volver_icon, ft.Text("Gestión de Productos", size=25, weight="bold", color="black")]),
+                ft.Row([volver_icon, ft.Text("Gestión de Productos", size=FontSizes.XLARGE, weight="bold", color=Colors.PRIMARY)]),
                 nombre,
-                sugerencias,
                 categoria,
-                unidad,
-                precio_compra,
-                precio_venta,
-                stock,
+                ft.Row([precio_compra, precio_venta], spacing=Spacing.MEDIUM),
+                ft.Row([stock_actual, stock_minimo], spacing=Spacing.MEDIUM),
+                descripcion,
                 error_msg,
                 botones,
             ],
-            spacing=15,
+            spacing=Spacing.MEDIUM,
             horizontal_alignment=ft.CrossAxisAlignment.START,
+            scroll=ft.ScrollMode.AUTO,
         ),
-        width=600,
-        padding=30,
-        border_radius=20,
-        bgcolor=ft.colors.with_opacity(0.7, ft.colors.WHITE),
-        shadow=ft.BoxShadow(blur_radius=15, color="#444"),
+        width=500,
+        height=650,
+        padding=Sizes.CARD_PADDING,
+        border_radius=Sizes.CARD_RADIUS,
+        bgcolor=Colors.CARD_BG,
+        shadow=ft.BoxShadow(blur_radius=12, color=ft.colors.with_opacity(0.2, Colors.TEXT_PRIMARY)),
     )
 
+    # === TARJETA DE FILTROS ===
+    filtros_card = ft.Container(
+        content=ft.Row([filtro_nombre, filtro_categoria], spacing=Spacing.MEDIUM),
+        padding=Spacing.MEDIUM,
+        border_radius=Sizes.CARD_RADIUS,
+        bgcolor=ft.colors.with_opacity(0.5, Colors.BG_WHITE),
+    )
+
+    # === TARJETA DE TABLA CON SCROLL ===
     tabla_card = ft.Container(
-        content=ft.Column(
-            [
-                busqueda,
-                ft.ListView(
-                    controls=[
-                        ft.Row([tabla], expand=True, scroll=ft.ScrollMode.AUTO)
-                    ],
-                    expand=True,
-                    spacing=0,
-                    padding=0,
-                    height=400,
+        content=ft.Column([
+            filtros_card,
+            ft.Container(
+                content=ft.Column(
+                    [tabla],
+                    scroll=ft.ScrollMode.AUTO,
+                    auto_scroll=True,
                 ),
-            ],
-            expand=True,
-        ),
+                height=600,
+                border=ft.border.all(1, Colors.BORDER_LIGHT),
+                border_radius=Sizes.CARD_RADIUS,
+                padding=Spacing.NORMAL,
+            ),
+        ], expand=True, spacing=Spacing.MEDIUM),
         expand=True,
-        padding=20,
-        border_radius=20,
-        bgcolor=ft.colors.with_opacity(0.7, ft.colors.WHITE),
-        shadow=ft.BoxShadow(blur_radius=15, color="#444"),
-        width=750,  # Aumentado para la nueva columna
+        padding=Sizes.CARD_PADDING,
+        border_radius=Sizes.CARD_RADIUS,
+        bgcolor=Colors.CARD_BG,
+        shadow=ft.BoxShadow(blur_radius=12, color=ft.colors.with_opacity(0.2, Colors.TEXT_PRIMARY)),
+        width=750,
     )
 
+    # === LAYOUT PRINCIPAL ===
     content.controls.append(
         ft.Row(
             [form_card, tabla_card],
             alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-            expand=True,
+            expand=True
         )
     )
 
+    # === EVENTOS ===
+    filtro_nombre.on_change = refrescar_tabla
+    filtro_categoria.on_change = refrescar_tabla
+
+    # === CARGA INICIAL ===
     refrescar_tabla()
 
     if page:
         page.update()
+
+    print("✅ Módulo de Productos cargado (PostgreSQL + Nueva Arquitectura)")

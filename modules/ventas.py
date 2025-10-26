@@ -1,37 +1,21 @@
+"""
+Módulo de Gestión de Ventas - Punto de Venta
+Migrado a PostgreSQL con nueva arquitectura
+"""
 import flet as ft
 import re
 from datetime import datetime
-from modules.database_manager import get_db_connection
+from modules.db_service import db
+from modules.config import Colors, FontSizes, Sizes, Messages, Icons, Spacing
+from modules.utils import format_guarani, parse_guarani, to_int
+from modules.session_service import session
 
-# --- Normalización de moneda Gs. ---
-def to_int(v):
-    if isinstance(v, (int, float)): return int(v)
-    if v is None: return 0
-    s = str(v).strip()
-    s = s.replace("Gs.", "").replace("Gs", "").replace("gs.", "").replace("gs", "")
-    s = s.replace(".", "").replace(",", "")
-    s = re.sub(r"\s+", "", s)
-    return int(s) if s.isdigit() else 0
-
+# --- Funciones de compatibilidad ---
 def format_gs(n):
-    try:
-        n = int(round(float(n)))
-    except Exception:
-        n = 0
-    return f"{n:,}".replace(",", ".") + " Gs."
+    """Formatea entero a guaraníes - usa format_guarani de utils"""
+    return format_guarani(n)
 
 # --- Importaciones opcionales ---
-try:
-    from session_manager import session
-except ImportError:
-    class SessionSimulator:
-        def get_current_user(self):
-            return {'id': 1, 'nombre_completo': 'Administrador', 'username': 'admin'}
-        def tiene_permiso(self, modulo, accion):
-            return True
-    session = SessionSimulator()
-    print("⚠️ Usando simulador de sesión")
-
 try:
     from pdf_generator import generar_ticket_pdf, abrir_pdf
 except ImportError:
@@ -41,12 +25,12 @@ except ImportError:
     def abrir_pdf(*args, **kwargs):
         return False
 
-# --- Constantes ---
-PRIMARY_COLOR = "#2E7D32"
-ACCENT_COLOR = "#66BB6A"
-SUCCESS_COLOR = "#4CAF50"
-WARNING_COLOR = "#FF9800"
-ERROR_COLOR = "#F44336"
+# --- Constantes para compatibilidad ---
+PRIMARY_COLOR = Colors.PRIMARY
+ACCENT_COLOR = Colors.ACCENT
+SUCCESS_COLOR = Colors.SUCCESS
+WARNING_COLOR = Colors.WARNING
+ERROR_COLOR = Colors.ERROR
 
 def crud_view(content, page=None):
     print("🛒 Iniciando módulo de ventas PdV COMPLETO (PostgreSQL)...")
@@ -92,7 +76,7 @@ def crud_view(content, page=None):
     def obtener_sesion_activa():
         """Obtiene la sesión de caja activa del usuario"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT sc.id, sc.monto_apertura, c.nombre, sc.fecha_apertura
@@ -111,7 +95,7 @@ def crud_view(content, page=None):
     def abrir_caja(monto_apertura):
         """Abre una nueva sesión de caja"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 # Verificar sesión existente
@@ -164,7 +148,7 @@ def crud_view(content, page=None):
     def cerrar_caja(sesion_id, monto_cierre, observaciones=""):
         """Cierra la sesión de caja actual"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 # Calcular total de ventas
@@ -203,7 +187,7 @@ def crud_view(content, page=None):
     def obtener_productos():
         """Obtiene productos activos con stock"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT id, nombre, categoria,
@@ -224,7 +208,7 @@ def crud_view(content, page=None):
     def obtener_clientes():
         """Obtiene clientes activos"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT id, nombre,
@@ -244,7 +228,7 @@ def crud_view(content, page=None):
     def obtener_cliente_por_id(cliente_id):
         """Obtiene datos completos del cliente por ID"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT id, nombre,
@@ -263,7 +247,7 @@ def crud_view(content, page=None):
     def obtener_ventas_del_dia():
         """Obtiene las ventas del día actual"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT COALESCE(v.numero_venta, 'V' || v.id) as numero,
@@ -295,7 +279,7 @@ def crud_view(content, page=None):
         try:
             print(f"💾 Guardando venta en PostgreSQL...")
 
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 numero_venta = generar_numero_venta()

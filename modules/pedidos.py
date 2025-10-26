@@ -1,3 +1,7 @@
+"""
+Módulo de Gestión de Pedidos
+Migrado a PostgreSQL con nueva arquitectura
+"""
 import flet as ft
 import webbrowser
 import os
@@ -10,31 +14,32 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from modules import dashboard
-from modules.database_manager import get_db_connection
+from modules.db_service import db
+from modules.config import Colors, FontSizes, Sizes, Messages, Icons, Spacing
+from modules.utils import format_guarani, parse_guarani, open_whatsapp
 
-PRIMARY_COLOR = "#2E7D32"
-ACCENT_COLOR = "#66BB6A"
-SUCCESS_COLOR = "#4CAF50"
-WARNING_COLOR = "#FF9800"
-ERROR_COLOR = "#F44336"
-BLUE_COLOR = "#2196F3"
+# Constantes para compatibilidad con código existente
+PRIMARY_COLOR = Colors.PRIMARY
+ACCENT_COLOR = Colors.ACCENT
+SUCCESS_COLOR = Colors.SUCCESS
+WARNING_COLOR = Colors.WARNING
+ERROR_COLOR = Colors.ERROR
+BLUE_COLOR = Colors.INFO
 TICKET_DIR = "tickets"
 
-# ---------------- AUXILIARES ----------------
+# Funciones auxiliares que usan las de utils
 def parse_gs(valor: str) -> int:
-    """Convierte texto de guaraníes a entero"""
-    if not valor:
-        return 0
-    return int("".join(ch for ch in str(valor) if ch.isdigit()))
+    """Convierte texto de guaraníes a entero - usa parse_guarani de utils"""
+    return parse_guarani(valor)
 
 def format_gs(valor: int) -> str:
-    """Formatea entero a guaraníes con separadores"""
-    return f"Gs. {int(valor):,.0f}".replace(",", ".")
+    """Formatea entero a guaraníes con separadores - usa format_guarani de utils"""
+    return format_guarani(valor)
 
 def obtener_productos():
     """Obtiene productos disponibles con stock - PostgreSQL"""
     try:
-        with get_db_connection() as conn:
+        with db.get_connection() as conn:
             cur = conn.cursor()
             cur.execute("""
                 SELECT id, nombre,
@@ -67,7 +72,7 @@ def obtener_usuario_actual(page):
         user_id = page.session.get('user_id') if page else None
         if user_id:
             try:
-                with get_db_connection() as conn:
+                with db.get_connection() as conn:
                     cur = conn.cursor()
                     cur.execute("SELECT username FROM usuarios WHERE id = %s", (user_id,))
                     result = cur.fetchone()
@@ -88,7 +93,7 @@ def generar_ticket_pedido(pedido_id):
         os.makedirs(TICKET_DIR)
 
     try:
-        with get_db_connection() as conn:
+        with db.get_connection() as conn:
             cur = conn.cursor()
 
             # Obtener datos del pedido
@@ -651,7 +656,7 @@ def crud_view(content, page=None):
         """Refresca lista de clientes desde PostgreSQL"""
         cliente_dd.options.clear()
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
                 cur.execute("SELECT id, nombre FROM clientes ORDER BY nombre ASC")
                 for cid, nom in cur.fetchall():
@@ -669,7 +674,7 @@ def crud_view(content, page=None):
             return
 
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 # Obtener información de columnas
@@ -910,7 +915,7 @@ def crud_view(content, page=None):
             return
 
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 f_entrega_val = fecha_entrega.value if fecha_entrega.value else None
@@ -993,7 +998,7 @@ def crud_view(content, page=None):
         """Refresca la tabla de pedidos desde PostgreSQL"""
         pedidos_tabla.rows.clear()
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 query = """
@@ -1102,7 +1107,7 @@ def crud_view(content, page=None):
     def editar_pedido(pedido_id):
         """Carga un pedido para edición - PostgreSQL"""
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 cur.execute("""
@@ -1157,7 +1162,7 @@ def crud_view(content, page=None):
         """Elimina un pedido - PostgreSQL"""
         def confirmar_eliminacion(e):
             try:
-                with get_db_connection() as conn:
+                with db.get_connection() as conn:
                     cur = conn.cursor()
 
                     cur.execute("DELETE FROM detalle_pedido WHERE pedido_id = %s", (pedido_id,))
@@ -1223,7 +1228,7 @@ def crud_view(content, page=None):
             return
 
         try:
-            with get_db_connection() as conn:
+            with db.get_connection() as conn:
                 cur = conn.cursor()
 
                 placeholders = ",".join(["%s"] * len(pedidos_seleccionados))
@@ -1297,7 +1302,7 @@ def crud_view(content, page=None):
 
             def marcar_como_entregado():
                 try:
-                    with get_db_connection() as conn:
+                    with db.get_connection() as conn:
                         cur = conn.cursor()
 
                         placeholders = ",".join(["%s"] * len(pedidos_seleccionados))
@@ -1516,7 +1521,7 @@ def crud_view(content, page=None):
     print("✅ Módulo de Pedidos COMPLETO (PostgreSQL) cargado") # [CONTINUACIÓN DEL CÓDIGO - Campos del formulario, funciones, etc.]
     # Por límite de espacio, el resto del código sigue el mismo patrón de conversión:
     # - Todas las consultas SQL usan %s en lugar de ?
-    # - Uso de get_db_connection() con context manager
+    # - Uso de db.get_connection() con context manager
     # - lastrowid → RETURNING id + fetchone()[0]
 
     # El código restante (líneas 380-1700+) sigue el mismo patrón de migración
